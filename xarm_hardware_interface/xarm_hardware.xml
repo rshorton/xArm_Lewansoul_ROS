@@ -1,0 +1,9 @@
+<library path="xarm_hardware_interface">
+  <class name="xarm_hardware/XArmSystemHardware"
+         type="xarm_hardware::XArmSystemHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ROS2 control for XArm.
+    </description>
+  </class>
+</library>
