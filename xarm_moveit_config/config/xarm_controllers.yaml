@@ -2,8 +2,8 @@ controller_names:
   - position_trajectory_controller
 
 position_trajectory_controller:
-  action_ns: joint_trajectory_controller
-  type: JointTrajectoryController
+  action_ns: follow_joint_trajectory
+  type: FollowJointTrajectory
   default: true
   joints:
       - xarm_2_joint
