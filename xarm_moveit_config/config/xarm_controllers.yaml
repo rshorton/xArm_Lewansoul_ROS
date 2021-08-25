@@ -1,0 +1,13 @@
+controller_names:
+  - position_trajectory_controller
+
+position_trajectory_controller:
+  action_ns: joint_trajectory_controller
+  type: JointTrajectoryController
+  default: true
+  joints:
+      - xarm_2_joint
+      - xarm_3_joint
+      - xarm_4_joint
+      - xarm_5_joint
+      - xarm_6_joint

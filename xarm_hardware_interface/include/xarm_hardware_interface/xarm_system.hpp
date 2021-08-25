@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_CONTROL_DEMO_HARDWARE__XARM_SYSTEM_HPP_
-#define ROS2_CONTROL_DEMO_HARDWARE__XARM_SYSTEM_HPP_
+#ifndef XARM_HARDWARE_INTERFACE__XARM_SYSTEM_HPP_
+#define XARM_HARDWARE_INTERFACE__XARM_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -37,25 +37,25 @@ class XArmSystemHardware
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(XArmSystemHardware);
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   hardware_interface::return_type configure(const hardware_interface::HardwareInfo & info) override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   hardware_interface::return_type start() override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   hardware_interface::return_type stop() override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   hardware_interface::return_type read() override;
 
-  ROS2_CONTROL_DEMO_HARDWARE_PUBLIC
+  XARM_HARDWARE_INTERFACE_PUBLIC
   hardware_interface::return_type write() override;
 
 private:
@@ -74,4 +74,4 @@ private:
 
 }  // namespace xarm_hardware
 
-#endif  // ROS2_CONTROL_DEMO_HARDWARE__XARM_SYSTEM_HPP_
+#endif  // XARM_HARDWARE_INTERFACE__XARM_SYSTEM_HPP_

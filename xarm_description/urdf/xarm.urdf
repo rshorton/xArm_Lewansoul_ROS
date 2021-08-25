@@ -27,7 +27,6 @@
     <material name="SickBlue">
         <color rgba="0.3058 0.5921 0.7294 1.0" />
     </material>
-    <property name="M_PI" value="3.1415926535897931" />
 
     <link name="xarm_base_link">
         <visual>

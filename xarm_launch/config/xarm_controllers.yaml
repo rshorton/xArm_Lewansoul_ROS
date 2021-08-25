@@ -3,13 +3,16 @@ controller_manager:
     update_rate: 100  # Hz
 
     joint_state_broadcaster:
-      type: joint_state_broadcaster/JointStateBroadcaster
+      type: "joint_state_broadcaster/JointStateBroadcaster"
 
     forward_position_controller:
-      type: forward_command_controller/ForwardCommandController
+      type: "forward_command_controller/ForwardCommandController"
 
     position_trajectory_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: "joint_trajectory_controller/JointTrajectoryController"
+
+    joint_state_controller:
+      type: joint_state_controller/JointStateController
 
 
 forward_position_controller:
@@ -21,7 +24,8 @@ forward_position_controller:
       - xarm_5_joint
       - xarm_6_joint
 
-    interface_name: position
+    interface_name:
+      - position
 
 
 position_trajectory_controller:

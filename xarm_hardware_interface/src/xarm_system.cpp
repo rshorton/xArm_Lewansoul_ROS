@@ -199,7 +199,7 @@ hardware_interface::return_type XArmSystemHardware::write()
   {
 	  if (hw_states_[i] != hw_commands_[i]) {
 		RCLCPP_INFO(
-		  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "Got command %.5f for joint %d!",
+		  rclcpp::get_logger("XArmSystemHardware"), "Got command %.5f for joint %d!",
 		  hw_commands_[i], i);
 		xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 500);
 	  }
