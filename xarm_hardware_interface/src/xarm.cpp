@@ -189,7 +189,7 @@ namespace xarm
 			unit= (p_msb << 8) + p_lsb;
 			joint_positions[i] = convertUnitToRad(joint_names[i], unit);
 			// printf("servo %d in joint_position %f \n", id, joint_positions[i]);
-			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %d in joint_position %f \n", id, joint_positions[i]);
+			RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "servo %d in joint_position %f \n", id, joint_positions[i]);
 
 		}
 

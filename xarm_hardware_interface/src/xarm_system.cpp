@@ -39,6 +39,7 @@ hardware_interface::return_type XArmSystemHardware::configure(
   hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_joint_name_.resize(info_.joints.size(), std::string());
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_commands_last_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
@@ -141,6 +142,7 @@ hardware_interface::return_type XArmSystemHardware::start()
     {
       hw_commands_[i] = hw_states_[i];
     }
+    hw_commands_last_[i] = std::numeric_limits<double>::max();
   }
 
   status_ = hardware_interface::status::STARTED;
@@ -183,8 +185,8 @@ hardware_interface::return_type XArmSystemHardware::read()
 	  {
 		  hw_states_[i] = position_temp[i];
 		  RCLCPP_INFO(
-			  rclcpp::get_logger("XArmSystemHardware"), "Got state %.5f for joint %d!",
-			  hw_states_[i], i);
+			  rclcpp::get_logger("XArmSystemHardware"), "Got state %.5f for joint %s (%d)!",
+			  hw_states_[i], hw_joint_name_[i].c_str(), i);
 	  }
   }
 
@@ -197,11 +199,12 @@ hardware_interface::return_type XArmSystemHardware::write()
 
   for (uint i = 0; i < hw_commands_.size(); i++)
   {
-	  if (hw_states_[i] != hw_commands_[i]) {
+	  if (hw_commands_last_[i] != hw_commands_[i]) {
 		RCLCPP_INFO(
-		  rclcpp::get_logger("XArmSystemHardware"), "Got command %.5f for joint %d!",
-		  hw_commands_[i], i);
-		xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 500);
+		  rclcpp::get_logger("XArmSystemHardware"), "Got command %.5f for joint %s (%d)!",
+		  hw_commands_[i], hw_joint_name_[i].c_str(), i);
+		xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 1000);
+		hw_commands_last_[i] = hw_commands_[i];
 	  }
   }
 //  RCLCPP_INFO(
