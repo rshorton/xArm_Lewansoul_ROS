@@ -168,13 +168,6 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    # ros2_control using FakeSystem as hardware
-    ros2_controllers_path = os.path.join(
-        get_package_share_directory("xarm_launch"),
-        "config",
-        "xarm_controllers.yaml",
-    )
-
     robot_controllers = os.path.join(
         get_package_share_directory("xarm_launch"),
         "config",
@@ -193,8 +186,7 @@ def generate_launch_description():
 
     # Load controllers
     load_controllers = []
-    #for controller in ["xarm_controller", "joint_state_controller"]:
-    for controller in ["position_trajectory_controller", "joint_state_controller"]:
+    for controller in ["xarm_trajectory_position_controller", "joint_state_controller", "xarm_gripper_trajectory_position_controller"]:
         load_controllers += [
             ExecuteProcess(
                 cmd=["ros2 run controller_manager spawner.py {}".format(controller)],

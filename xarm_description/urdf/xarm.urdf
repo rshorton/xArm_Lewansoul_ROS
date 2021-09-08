@@ -131,12 +131,72 @@
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/link2.stl" scale="1.0 1.0 1.0" />
             </geometry>
-            <material name="DarkGrey" />
+            <material name="Blue" />
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/link2.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+
+    <link name="xarm_gripper_base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+            <material name="DarkGrey" />
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+
+    <link name="xarm_gripper_finger_left_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+            <material name="DarkGrey" />
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+
+    <link name="xarm_gripper_finger_right_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+            <material name="DarkGrey" />
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
             </geometry>
         </collision>
         <inertial>
@@ -195,6 +255,30 @@
         <child link="xarm_2_link" />
     </joint>
 
+    <joint name="xarm_end_effector_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <axis xyz="0 0 1" />
+        <parent link="xarm_2_link" />
+        <child link="xarm_gripper_base_link" />
+    </joint>
+
+    <joint name="xarm_1_joint" type="prismatic">
+        <origin rpy="0 0 0" xyz="0 0 0.050"/>
+        <axis xyz="1 0 0" />
+        <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
+        <parent link="xarm_gripper_base_link"/>
+        <child link="xarm_gripper_finger_left_link"/>
+    </joint>
+
+    <joint name="xarm_1_joint_mirror" type="prismatic">
+        <origin rpy="0 0 0" xyz="0 0 0.050"/>
+        <axis xyz="1 0 0" />
+        <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
+        <parent link="xarm_gripper_base_link"/>
+        <child link="xarm_gripper_finger_right_link"/>
+        <mimic multiplier="-1.0" joint="xarm_1_joint" />
+    </joint>
+
     <ros2_control name="xarm_ros2_control" type="system">
       <hardware>
         <plugin>xarm_hardware/XArmSystemHardware</plugin>
@@ -203,6 +287,20 @@
         <param name="example_param_hw_slowdown">100</param>
       </hardware>
 
+      <joint name="xarm_1_joint">
+        <command_interface name="position">
+          <param name="min">0.0035</param>
+          <param name="max">0.028</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="xarm_1_joint_mirror">
+        <command_interface name="position">
+          <param name="min">0.003</param>
+          <param name="max">0.028</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
       <joint name="xarm_2_joint">
         <command_interface name="position">
           <param name="min">-2.1749</param>

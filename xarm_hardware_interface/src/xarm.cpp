@@ -72,12 +72,23 @@ namespace xarm
 		hid_free_enumeration(devs);
 
 		//Dictionary of joint_names to joint_id
+		joint_name_map.insert(std::make_pair("xarm_1_joint" , 1));
+		joint_name_map.insert(std::make_pair("xarm_1_joint_mirror" , 11));
 		joint_name_map.insert(std::make_pair("xarm_2_joint" , 2));
 		joint_name_map.insert(std::make_pair("xarm_3_joint" , 3));
   		joint_name_map.insert(std::make_pair("xarm_4_joint" , 4));
 		joint_name_map.insert(std::make_pair("xarm_5_joint" , 5));
 		joint_name_map.insert(std::make_pair("xarm_6_joint" , 6));
 
+
+		// gripper range servo units:             700   -  200
+		// corresponding to phy units of meters:  0.003 - 0.028
+		// 0.3 is 1/2 the total grip width since mimic joint used in urdf
+		gripper_pos_min_m = 0.003;  // meters
+		gripper_pos_min_s = 700.0; // servo units
+		gripper_pos_max_s = 200.0;
+								  // scale factor: mult scale by phy units in meter to get servo units
+		gripper_pos_m_to_s_factor = (gripper_pos_max_s - gripper_pos_min_s)/(0.028 - gripper_pos_min_m);
 
 		matrix_unit_transform["xarm_2_joint"][0][0]=200;
 		matrix_unit_transform["xarm_2_joint"][0][1]=980;
@@ -90,20 +101,6 @@ namespace xarm
 		matrix_unit_transform["xarm_6_joint"][0][0]=90;
 		matrix_unit_transform["xarm_6_joint"][0][1]=845;
 
-		// First column values for -pi/2 and 2nd column pi/2
-		matrix_unit_rad[0][0] = 100;    //Gripper opened
-		matrix_unit_rad[0][1] = 800;    //Gripper closed
-		matrix_unit_rad[1][0] = 200; 	/*  Joint 2 */
-		matrix_unit_rad[1][1] = 980;
-   		matrix_unit_rad[2][0] = 140;	/*  Joint 3*/
-		matrix_unit_rad[2][1] = 880;
-   		matrix_unit_rad[3][0] = 130;	/*  Joint 4 */
-		matrix_unit_rad[3][1] = 870;
-		matrix_unit_rad[4][0] = 140;	/*  Joint 5 */
-		matrix_unit_rad[4][1] = 880;
-		matrix_unit_rad[5][0] = 90; 	/*  Joint 6 */
-		matrix_unit_rad[5][1] = 845;
-
 		inited = true;
 		return true;
 	}
@@ -113,6 +110,7 @@ namespace xarm
 		devs = hid_enumerate(0x0, 0x0);
 		cur_dev = devs;
 		while (cur_dev) {
+#if 0
 			printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
 			printf("\n");
 			printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
@@ -120,7 +118,7 @@ namespace xarm
 			printf("  Release:      %hx\n", cur_dev->release_number);
 			printf("  Interface:    %d\n",  cur_dev->interface_number);
 			printf("\n");
-
+#endif
 			cur_dev = cur_dev->next;
 		}
 	}
@@ -174,34 +172,70 @@ namespace xarm
 				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "waiting...\n");
 			if (res < 0)
 				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to read()\n");
-
 			usleep(500*1000);
-
 		}
 
 		int id;
 		int p_lsb, p_msb, unit, joint_id;
 		for (int i=0; i<(int)joint_names.size(); i++){
-			joint_id = joint_name_map[joint_names[i]];
+			// If mirrored joint 1
+			bool bJ1Mirror = joint_names[i] == "xarm_1_joint_mirror";
+			if (bJ1Mirror) {
+				joint_id = joint_name_map["xarm_1_joint"];
+			} else {
+				joint_id = joint_name_map[joint_names[i]];
+			}
 			id = buf[2+3*joint_id];
 			p_lsb= buf[2+3*joint_id+1];
 			p_msb= buf[2+3*joint_id+2];
 			unit= (p_msb << 8) + p_lsb;
-			joint_positions[i] = convertUnitToRad(joint_names[i], unit);
-			// printf("servo %d in joint_position %f \n", id, joint_positions[i]);
-			RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "servo %d in joint_position %f \n", id, joint_positions[i]);
 
+			if (joint_id == 1 || joint_id == 11) {
+				float pos = (float)unit;
+				if (pos > gripper_pos_min_s) {
+					pos = gripper_pos_min_s;
+				} else if (pos < gripper_pos_max_s) {
+					pos = gripper_pos_max_s;
+				}
+				joint_positions[i] = (pos - gripper_pos_min_s)/gripper_pos_m_to_s_factor + gripper_pos_min_m;
+				if (i == 1) {
+					joint_positions[i] *= -1;
+				}
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d) units %d, pos= %f\n", joint_names[i].c_str(), id, unit, joint_positions[i]);
+			} else {
+				joint_positions[i] = convertUnitToRad(joint_names[i], unit);
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d) in joint_position %f \n", joint_names[i].c_str(), id, joint_positions[i]);
+			}
 		}
 
 		return joint_positions;
 	}
 
-	void  xarm::setJointPosition(std::string joint_name, double position_rad, int time=1000)
+	void  xarm::setJointPosition(std::string joint_name, double position, int time=1000)
 	{
 		unsigned char buf[65];
 		unsigned char t_lsb,t_msb, p_lsb, p_msb;
 		int res;
-		int position_unit = int(convertRadToUnit(joint_name, position_rad));
+		int position_unit = 0;
+
+		if (joint_name == "xarm_1_joint") {
+			double pos_in = position;
+			if (pos_in < gripper_pos_min_m) {
+				pos_in = gripper_pos_min_m;
+			}
+			position_unit = (int)((pos_in - gripper_pos_min_m)*gripper_pos_m_to_s_factor + gripper_pos_min_s);
+			//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos_in= %f, unit %d \n", pos_in,
+
+			if (position_unit < gripper_pos_max_s) {
+				position_unit = gripper_pos_max_s;
+			}
+			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %f, position_unit %d \n",
+					joint_name.c_str(), position, position_unit);
+		} else if (joint_name == "xarm_1_joint_mirror") {
+			return;
+		} else {
+			position_unit = int(convertRadToUnit(joint_name, position));
+		}
 
         t_lsb= time & 0xFF;
 		t_msb = time >> 8;

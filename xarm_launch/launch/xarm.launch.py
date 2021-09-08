@@ -80,11 +80,16 @@ def generate_launch_description():
         arguments=["-d", rviz_config_file],
     )
 
-
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner.py",
-        arguments=["forward_position_controller", "-c", "/controller_manager"],
+        arguments=["xarm_forward_position_controller", "-c", "/controller_manager"],
+    )
+
+    robot_gripper_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner.py",
+        arguments=["xarm_gripper_forward_position_controller", "-c", "/controller_manager"],
     )
 
     nodes = [
@@ -93,6 +98,7 @@ def generate_launch_description():
         rviz_node,
         joint_state_broadcaster_spawner,
         robot_controller_spawner,
+        robot_gripper_controller_spawner
     ]
 
     return LaunchDescription(nodes)
