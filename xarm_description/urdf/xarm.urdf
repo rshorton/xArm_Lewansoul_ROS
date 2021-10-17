@@ -107,14 +107,14 @@
 
     <link name="xarm_3_link">
         <visual>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/link3.stl" scale="1.0 1.0 1.0" />
             </geometry>
             <material name="Blue" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/link3.stl" scale="1.0 1.0 1.0" />
             </geometry>
@@ -147,14 +147,14 @@
 
     <link name="xarm_gripper_base_link">
         <visual>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
             </geometry>
             <material name="DarkGrey" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
             </geometry>
