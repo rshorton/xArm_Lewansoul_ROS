@@ -90,16 +90,21 @@ namespace xarm
 								  // scale factor: mult scale by phy units in meter to get servo units
 		gripper_pos_m_to_s_factor = (gripper_pos_max_s - gripper_pos_min_s)/(0.028 - gripper_pos_min_m);
 
-		matrix_unit_transform["xarm_2_joint"][0][0]=200;
-		matrix_unit_transform["xarm_2_joint"][0][1]=980;
-		matrix_unit_transform["xarm_3_joint"][0][0]=140;
-		matrix_unit_transform["xarm_3_joint"][0][1]=880;
-		matrix_unit_transform["xarm_4_joint"][0][0]=870;
-		matrix_unit_transform["xarm_4_joint"][0][1]=130;
-		matrix_unit_transform["xarm_5_joint"][0][0]=140;
-		matrix_unit_transform["xarm_5_joint"][0][1]=880;
-		matrix_unit_transform["xarm_6_joint"][0][0]=90;
-		matrix_unit_transform["xarm_6_joint"][0][1]=845;
+		matrix_unit_transform["xarm_2_joint"][0][0] = 200;	// min in servo units
+		matrix_unit_transform["xarm_2_joint"][0][1] = 980;	// max in servo units
+		matrix_unit_transform["xarm_2_joint"][0][2] = 1;	// -1 to invert range
+		matrix_unit_transform["xarm_3_joint"][0][0] = 140;
+		matrix_unit_transform["xarm_3_joint"][0][1] = 880;
+		matrix_unit_transform["xarm_3_joint"][0][2] = -1;
+		matrix_unit_transform["xarm_4_joint"][0][0] = 870;
+		matrix_unit_transform["xarm_4_joint"][0][1] = 130;
+		matrix_unit_transform["xarm_4_joint"][0][2] = -1;
+		matrix_unit_transform["xarm_5_joint"][0][0] = 140;
+		matrix_unit_transform["xarm_5_joint"][0][1] = 880;
+		matrix_unit_transform["xarm_5_joint"][0][2] = -1;
+		matrix_unit_transform["xarm_6_joint"][0][0] = 90;
+		matrix_unit_transform["xarm_6_joint"][0][1] = 845;
+		matrix_unit_transform["xarm_6_joint"][0][2] = 1;
 
 		inited = true;
 		return true;
@@ -125,20 +130,22 @@ namespace xarm
 
 	int xarm::convertRadToUnit(std::string joint_name, double rad)
 	{
-		int unit;
-		double m= (matrix_unit_transform[joint_name][0][1]-matrix_unit_transform[joint_name][0][0])/(PI);
-		double b = matrix_unit_transform[joint_name][0][1] - (m*PI/2);
-		unit = (m*rad) + b;
-		return unit;
+		// Range in servo units
+		double range = matrix_unit_transform[joint_name][0][1] - matrix_unit_transform[joint_name][0][0];
+		// Mid-range in servo units
+		//double b = matrix_unit_transform[joint_name][0][1] - range/2;
+		double b = 500.0;
+		return (range*rad/PI*matrix_unit_transform[joint_name][0][2]) + b;
 	}
 
 	double xarm::convertUnitToRad(std::string joint_name, int unit)
 	{
-		double rad;
-		double m= (PI)/(matrix_unit_transform[joint_name][0][1]-matrix_unit_transform[joint_name][0][0]);
-		double b = (PI/2) - (m*matrix_unit_transform[joint_name][0][1]);
-		rad = (m*unit) + b;
-		return rad;
+		// Range in servo units
+		double range = matrix_unit_transform[joint_name][0][1] - matrix_unit_transform[joint_name][0][0];
+		// Mid-range in servo units
+		double b = 500.0;
+		//double b = matrix_unit_transform[joint_name][0][1] - range/2;
+		return (unit - b)*PI*matrix_unit_transform[joint_name][0][2]/range;
 	}
 	std::vector<double> xarm::readJointsPosition(std::vector<std::string> joint_names)
 	{
@@ -201,10 +208,12 @@ namespace xarm
 				if (i == 1) {
 					joint_positions[i] *= -1;
 				}
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d) units %d, pos= %f\n", joint_names[i].c_str(), id, unit, joint_positions[i]);
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f",
+					joint_names[i].c_str(), id, unit, joint_positions[i]);
 			} else {
 				joint_positions[i] = convertUnitToRad(joint_names[i], unit);
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d) in joint_position %f \n", joint_names[i].c_str(), id, joint_positions[i]);
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f rad",
+					 joint_names[i].c_str(), id, unit,joint_positions[i]);
 			}
 		}
 

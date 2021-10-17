@@ -25,7 +25,7 @@ namespace xarm
 			struct hid_device_info *devs, *cur_dev;
 			void printDeviceInformation();
 			std::map<std::string, int> joint_name_map;
-			std::map<std::string, int[1][2]> matrix_unit_transform;
+			std::map<std::string, int[1][3]> matrix_unit_transform;
 			double gripper_pos_min_m;
 			double gripper_pos_min_s;
 			double gripper_pos_max_s;
