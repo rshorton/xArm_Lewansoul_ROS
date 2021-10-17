@@ -31,8 +31,14 @@ publisher_forward_position_controller:
     pos3d: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos4d: [0.0, 0.0, 0.0, 1.57, 0.0]
 
-    goal_names: ["pos1e", "pos2e", "pos3e", "pos4e"]
+    #goal_names: ["pos1e", "pos2e", "pos3e", "pos4e"]
     pos1e: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos2e: [0.0, 0.0, 0.0, 0.0, 1.57]
     pos3e: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos4e: [0.0, 0.0, 0.0, 0.0, -1.57]
+
+    goal_names: ["pos1", "pos2", "pos3", "pos4"]
+    pos1: [0.0, 0.0, 0.0, 0.0, 0.0]
+    pos2: [1.57, 0.7, 0.7, 0.0, 1.57]
+    pos3: [0.0, 0.7, 0.7, 0.7, 0.0]
+    pos4: [-1.57, 0.7, 0.7, 1.4, -1.57]
