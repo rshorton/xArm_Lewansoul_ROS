@@ -189,10 +189,10 @@ def generate_launch_description():
 
     # Load controllers
     load_controllers = []
-    for controller in ["xarm_trajectory_position_controller", "joint_state_controller", "xarm_gripper_trajectory_position_controller"]:
+    for controller in ["xarm_trajectory_position_controller", "joint_state_broadcaster", "xarm_gripper_trajectory_position_controller"]:
         load_controllers += [
             ExecuteProcess(
-                cmd=["ros2 run controller_manager spawner.py {}".format(controller)],
+                cmd=["ros2 run controller_manager spawner {}".format(controller)],
                 shell=True,
                 output="screen",
             )

@@ -113,7 +113,7 @@ XArmSystemHardware::export_command_interfaces()
   return command_interfaces;
 }
 
-CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Starting ...please wait...");
 
@@ -150,7 +150,7 @@ CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & p
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State & previous_state)
+CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Stopping ...please wait...");
 
@@ -179,9 +179,9 @@ hardware_interface::return_type XArmSystemHardware::read()
 	  if (hw_states_[i] != position_temp[i])
 	  {
 		  hw_states_[i] = position_temp[i];
-		  RCLCPP_INFO(
-			  rclcpp::get_logger("XArmSystemHardware"), "New state %.5f for joint %s (%d)!",
-			  hw_states_[i], hw_joint_name_[i].c_str(), i);
+		  //RCLCPP_INFO(
+			//  rclcpp::get_logger("XArmSystemHardware"), "New state %.5f for joint %s (%d)",
+			//  hw_states_[i], hw_joint_name_[i].c_str(), i);
 	  }
   }
 
@@ -195,11 +195,11 @@ hardware_interface::return_type XArmSystemHardware::write()
   for (uint i = 0; i < hw_commands_.size(); i++)
   {
 	  if (hw_commands_last_[i] != hw_commands_[i]) {
-		RCLCPP_INFO(
-		  rclcpp::get_logger("XArmSystemHardware"), "New command %.5f for joint %s (%d)!",
-		  hw_commands_[i], hw_joint_name_[i].c_str(), i);
-		xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 1000);
-		hw_commands_last_[i] = hw_commands_[i];
+		  RCLCPP_INFO(
+  		  rclcpp::get_logger("XArmSystemHardware"), "New command %.5f for joint %s (%d)",
+		    hw_commands_[i], hw_joint_name_[i].c_str(), i);
+		  xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 1000);
+		  hw_commands_last_[i] = hw_commands_[i];
 	  }
   }
 //  RCLCPP_INFO(
@@ -220,9 +220,9 @@ hardware_interface::return_type XArmSystemHardware::read()
 		double new_state = hw_states_[i] + (hw_commands_[i] - hw_states_[i]) / hw_slowdown_;
 	    if ( new_state != hw_states_[i]) {
 	    	hw_states_[i] = new_state;
-			RCLCPP_INFO(
-			  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New state %.5f for joint %d!",
-			  hw_states_[i], i);
+			//RCLCPP_INFO(
+			//  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New state %.5f for joint %d!",
+			//  hw_states_[i], i);
 	    }
 	  }
 	//  RCLCPP_INFO(rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "Joints successfully read!");
@@ -239,7 +239,7 @@ hardware_interface::return_type XArmSystemHardware::write()
 	  if (hw_states_[i] != hw_commands_[i]) {
 		// Simulate sending commands to the hardware
 		RCLCPP_INFO(
-		  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New command %.5f for joint %d!",
+		  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New command %.5f for joint %d",
 		  hw_commands_[i], i);
 	  }
   }

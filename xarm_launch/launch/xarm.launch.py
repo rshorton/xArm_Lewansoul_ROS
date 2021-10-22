@@ -64,7 +64,7 @@ def generate_launch_description():
 
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
     )
 
@@ -82,13 +82,13 @@ def generate_launch_description():
 
     robot_controller_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["xarm_forward_position_controller", "-c", "/controller_manager"],
     )
 
     robot_gripper_controller_spawner = Node(
         package="controller_manager",
-        executable="spawner.py",
+        executable="spawner",
         arguments=["xarm_gripper_forward_position_controller", "-c", "/controller_manager"],
     )
 

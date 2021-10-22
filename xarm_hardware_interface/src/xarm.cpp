@@ -50,7 +50,7 @@ namespace xarm
 
 			if (product=="LOBOT")
 			{
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "LOBOT found \n");
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "LOBOT found ");
 				found=1;
 				break;
 			}
@@ -58,17 +58,17 @@ namespace xarm
 		}
 		if (found==0)
 		{
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "LOBOT not found, make sure it is power on \n");
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "LOBOT not found, make sure it is power on ");
 			return false;
 		}
 
 		handle = hid_open_path(cur_dev->path);
 
 		if (!handle) {
-			printf("unable to open device\n");
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "unable to open device");
 			return false;
 		}
-		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Device opened \n");
+		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Device opened ");
 		hid_free_enumeration(devs);
 
 		//Dictionary of joint_names to joint_id
@@ -152,6 +152,7 @@ namespace xarm
 		int res;
 		std::vector<double> joint_positions;
 		unsigned char buf[65];
+		//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition start");
 
 		joint_positions.resize(joint_names.size());
 		buf[0] = 0x55;
@@ -168,21 +169,23 @@ namespace xarm
 		res = hid_write(handle, buf, 17);
 
 		if (res < 0) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()\n");
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls\n", hid_error(handle));
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()");
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls", hid_error(handle));
 		}
 
 		res = 0;
 		while (res == 0) {
 			res = hid_read(handle, buf, sizeof(buf));
+			if (res > 0) {
+				break;
+			}
 			if (res == 0)
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "waiting...\n");
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "waiting...");
 			if (res < 0)
-				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to read()\n");
+				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to read()");
 			usleep(500*1000);
 		}
 
-		int id;
 		int p_lsb, p_msb, unit, joint_id;
 		for (int i=0; i<(int)joint_names.size(); i++){
 			// If mirrored joint 1
@@ -192,7 +195,7 @@ namespace xarm
 			} else {
 				joint_id = joint_name_map[joint_names[i]];
 			}
-			id = buf[2+3*joint_id];
+			//int id = buf[2+3*joint_id];
 			p_lsb= buf[2+3*joint_id+1];
 			p_msb= buf[2+3*joint_id+2];
 			unit= (p_msb << 8) + p_lsb;
@@ -208,14 +211,15 @@ namespace xarm
 				if (i == 1) {
 					joint_positions[i] *= -1;
 				}
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f",
-					joint_names[i].c_str(), id, unit, joint_positions[i]);
+				//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f",
+				//	joint_names[i].c_str(), id, unit, joint_positions[i]);
 			} else {
 				joint_positions[i] = convertUnitToRad(joint_names[i], unit);
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f rad",
-					 joint_names[i].c_str(), id, unit,joint_positions[i]);
+				//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "servo %s (%d), servo units %d, pos %f rad",
+				//	 joint_names[i].c_str(), id, unit,joint_positions[i]);
 			}
 		}
+		//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition exit ");
 
 		return joint_positions;
 	}
@@ -233,12 +237,12 @@ namespace xarm
 				pos_in = gripper_pos_min_m;
 			}
 			position_unit = (int)((pos_in - gripper_pos_min_m)*gripper_pos_m_to_s_factor + gripper_pos_min_s);
-			//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos_in= %f, unit %d \n", pos_in,
+			//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos_in= %f, unit %d ", pos_in,
 
 			if (position_unit < gripper_pos_max_s) {
 				position_unit = gripper_pos_max_s;
 			}
-			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %f, position_unit %d \n",
+			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %f, position_unit %d ",
 					joint_name.c_str(), position, position_unit);
 		} else if (joint_name == "xarm_1_joint_mirror") {
 			return;
@@ -265,8 +269,8 @@ namespace xarm
 		res = hid_write(handle, buf, 17);
 
 		if (res < 0) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()\n");
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls\n", hid_error(handle));
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()");
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls", hid_error(handle));
 		}
 
 	}
