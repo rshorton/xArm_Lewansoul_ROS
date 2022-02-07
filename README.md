@@ -11,4 +11,4 @@ Use the positioning controls to move the arm and then select 'Plan & Execute'.
 
 Tested with ROS2 Galactic (latest updates as of 2/1/22) and source build of moveit2 and ros2_control (https://moveit.picknik.ai/galactic/doc/tutorials/getting_started/getting_started.html)
 
-IKFast is currently used as the kinematics solver and will provide solutions for the RViz use cases.  However, it isn't working well when using the moveit2 motioning planning api.  In most cases it will fail to provide a solution.
+IKFast is currently used as the kinematics solver and will provide solutions for the RViz use cases.  However, it isn't working well when using the moveit2 motion planning api.  In most cases it will fail to provide a solution.
