@@ -3,18 +3,12 @@ Provides ROS2 integration for xarm robot of Lewansoul.
 
 ROS1 Documentation can be found in the following link: https://xarm-lewansoul-ros.readthedocs.io/en/latest/.
 
-Run simple test:
-
-In one shell:
+To manually control arm using the Motion Planning plug-in of RViz, run:
 
     ros2 launch xarm_launch xarm.launch.py
 
-In another shell:
+Use the positioning controls to move the arm and then select 'Plan & Execute'.
 
-    ros2 launch xarm_test_nodes test_xarm_forward_position_controller.launch.py
+Tested with ROS2 Galactic (latest updates as of 2/1/22) and source build of moveit2 and ros2_control (https://moveit.picknik.ai/galactic/doc/tutorials/getting_started/getting_started.html)
 
-The above will open rviz2 with xArm showing, and then the arm will move repeatedly thru 3 poses.
-
-10/21/2021 status
-
-Moveit2 support is a work in progress.  The prebuilt ros2_control and moveit2 packages for Galactic do not appear to be compatible and result in a segfault in the move_group node when using RViz2 to test motion planning via the interactive tools or when using the moveit2 move group demo.  Building moveit2 from source (which pulls-in ros2_control as a dependency) results in the move group demo working, but Rviz2 now crashes when using interactive testing.  Maybe best to revert to Foxy for now?
+IKFast is currently used as the kinematics solver and will provide solutions for the RViz use cases.  However, it isn't working well when using the moveit2 motioning planning api.  In most cases it will fail to provide a solution.
