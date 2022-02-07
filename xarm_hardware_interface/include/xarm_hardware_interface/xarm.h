@@ -5,6 +5,8 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 namespace xarm
 {
@@ -15,23 +17,49 @@ namespace xarm
 			~xarm();
 
 			bool init();
-			std::vector<double> readJointsPosition(std::vector<std::string> joint_names);
-			void  setJointPosition(std::string joint_name, double position_rad, int time);
+
+			void setAllJointPositions(const std::vector<double> &commands, const std::vector<std::string> &joints);
+			void getAllJointPositions(std::vector<double> &positions, const std::vector<std::string> &joints);
+
+		private:
+			void Process();
+			void printDeviceInformation();
+
+			double jointValueToPosition(std::string joint_name, int jointValue);
+			int positionToJointValue(std::string joint_name, double position);
+
+			void readJointPositions(std::map<std::string, int> &pos_map);
+			void setJointPosition(std::string joint_name, int position, int time);
+
 			double convertUnitToRad(std::string joint_name, int unit);
 			int convertRadToUnit(std::string joint_name, double rad);
 
-		private:
-			hid_device *handle;
-			struct hid_device_info *devs, *cur_dev;
-			void printDeviceInformation();
-			std::map<std::string, int> joint_name_map;
-			std::map<std::string, int[1][3]> matrix_unit_transform;
-			double gripper_pos_min_m;
-			double gripper_pos_min_s;
-			double gripper_pos_max_s;
-			double gripper_pos_m_to_s_factor;
+			void set_manual_mode(bool enable);
+			bool manual_mode_enabled();
 
-			bool inited;
+			bool inited_;
+			bool run_;
+
+			hid_device *handle_;
+			struct hid_device_info *devs_;
+
+			std::mutex mutex_;
+			std::thread thread_;
+
+			std::map<std::string, int> joint_name_map_;
+			std::map<std::string, int[1][3]> joint_range_limits_;
+
+			// Map of joint to the last position set on the joint (in xarm units)
+			std::map<std::string, int> last_pos_set_map_;
+			// Map of joint to the last position status read for the joint (in xarm units)
+			std::map<std::string, int> last_pos_get_map_;
+
+			double gripper_pos_min_m_;
+			double gripper_pos_min_s_;
+			double gripper_pos_max_s_;
+			double gripper_pos_m_to_s_factor_;
+
+			bool new_cmd_;
 	};
 }
 

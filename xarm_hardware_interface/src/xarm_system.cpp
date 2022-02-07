@@ -25,9 +25,8 @@
 
 namespace xarm_hardware
 {
-CallbackReturn XArmSystemHardware::on_init(
-  const hardware_interface::HardwareInfo & info)
-{
+  CallbackReturn XArmSystemHardware::on_init(const hardware_interface::HardwareInfo & info)
+  {
    if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
    {
      return CallbackReturn::ERROR;
@@ -86,13 +85,12 @@ CallbackReturn XArmSystemHardware::on_init(
   return CallbackReturn::SUCCESS;  
 }
 
-std::vector<hardware_interface::StateInterface>
-XArmSystemHardware::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> XArmSystemHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (uint i = 0; i < info_.joints.size(); i++)
   {
-	hw_joint_name_[i] = info_.joints[i].name;
+	  hw_joint_name_[i] = info_.joints[i].name;
     state_interfaces.emplace_back(hardware_interface::StateInterface(
       info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_states_[i]));
   }
@@ -100,8 +98,7 @@ XArmSystemHardware::export_state_interfaces()
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface>
-XArmSystemHardware::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> XArmSystemHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (uint i = 0; i < info_.joints.size(); i++)
@@ -171,40 +168,25 @@ CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State &
 #if 1
 hardware_interface::return_type XArmSystemHardware::read()
 {
-  std::vector<double> position_temp;
-  position_temp = xarm.readJointsPosition(hw_joint_name_);
+  std::vector<double> positions;
+  xarm.getAllJointPositions(positions, hw_joint_name_);
 
   for (uint i = 0; i < hw_states_.size(); i++)
   {
-	  if (hw_states_[i] != position_temp[i])
+	  if (hw_states_[i] != positions[i])
 	  {
-		  hw_states_[i] = position_temp[i];
+		  hw_states_[i] = positions[i];
 		  //RCLCPP_INFO(
 			//  rclcpp::get_logger("XArmSystemHardware"), "New state %.5f for joint %s (%d)",
 			//  hw_states_[i], hw_joint_name_[i].c_str(), i);
 	  }
   }
-
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type XArmSystemHardware::write()
 {
-  //RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Writing...");
-
-  for (uint i = 0; i < hw_commands_.size(); i++)
-  {
-	  if (hw_commands_last_[i] != hw_commands_[i]) {
-		  RCLCPP_INFO(
-  		  rclcpp::get_logger("XArmSystemHardware"), "New command %.5f for joint %s (%d)",
-		    hw_commands_[i], hw_joint_name_[i].c_str(), i);
-		  xarm.setJointPosition(hw_joint_name_[i], hw_commands_[i], 1000);
-		  hw_commands_last_[i] = hw_commands_[i];
-	  }
-  }
-//  RCLCPP_INFO(
-//    rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "Joints successfully written!");
-
+  xarm.setAllJointPositions(hw_commands_, hw_joint_name_);
   return hardware_interface::return_type::OK;
 }
 
@@ -220,9 +202,9 @@ hardware_interface::return_type XArmSystemHardware::read()
 		double new_state = hw_states_[i] + (hw_commands_[i] - hw_states_[i]) / hw_slowdown_;
 	    if ( new_state != hw_states_[i]) {
 	    	hw_states_[i] = new_state;
-			//RCLCPP_INFO(
-			//  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New state %.5f for joint %d!",
-			//  hw_states_[i], i);
+			RCLCPP_INFO(
+			  rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "New state %.5f for joint %d!",
+			  hw_states_[i], i);
 	    }
 	  }
 	//  RCLCPP_INFO(rclcpp::get_logger("RRBotSystemPositionOnlyHardware"), "Joints successfully read!");
