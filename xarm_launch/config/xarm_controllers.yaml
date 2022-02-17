@@ -20,6 +20,7 @@ controller_manager:
 xarm_forward_position_controller:
   ros__parameters:
     joints:
+      - xarm_7_joint
       - xarm_2_joint
       - xarm_3_joint
       - xarm_4_joint
@@ -39,6 +40,7 @@ xarm_gripper_forward_position_controller:
 xarm_trajectory_position_controller:
   ros__parameters:
     joints:
+      - xarm_7_joint
       - xarm_2_joint
       - xarm_3_joint
       - xarm_4_joint

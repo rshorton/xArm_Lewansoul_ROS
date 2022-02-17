@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>xarm_move_group_test</name>
+  <version>0.1.0</version>
+  <description>XArm move group test package</description>
+  <license>BSD</license>
+
+  <maintainer email="horton.rscott@gmail.com">Scott Horton</maintainer>
+  
+  <url type="repository">https://github.com/rshorton</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>control_msgs</depend>
+  <depend>interactive_markers</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_visual_tools</depend>
+  <depend>pluginlib</depend>
+  <depend>rviz_visual_tools</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <build_depend>eigen</build_depend>
+  <build_depend>geometric_shapes</build_depend>
+  <build_depend>moveit_common</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+
+  <exec_depend>moveit</exec_depend>
+  <exec_depend>moveit_resources_panda_moveit_config</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

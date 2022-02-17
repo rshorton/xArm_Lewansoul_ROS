@@ -4,32 +4,34 @@ publisher_forward_position_controller:
     controller_name: "xarm_forward_position_controller"
     wait_sec_between_publish: 2
 
+# FIX - add joint 7
+
     #       Goal positions by servo
     #       2, 3, 4, 5, 6 (bottom)
 
     #goal_names: ["pos1a", "pos2a", "pos3a", "pos4a"]
-    pos1a: [1.57, 0.0, 0.0, 0.0, 0.0]
-    pos2a: [-1.57, 0.0, 0.0, 0.0, 0.0]
-    pos3a: [1.57, 0.0, 0.0, 0.0, 0.0]
+    pos1a: [ 0.0,  0.0, 0.0, 0.0, 0.0]
+    pos2a: [ 1.57, 0.0, 0.0, 0.0, 0.0]
+    pos3a: [  0.0, 0.0, 0.0, 0.0, 0.0]
     pos4a: [-1.57, 0.0, 0.0, 0.0, 0.0]
 
     #goal_names: ["pos1b", "pos2b", "pos3b", "pos4b"]
     pos1b: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos2b: [0.0, 1.57, 0.0, 0.0, 0.0]
     pos3b: [0.0, 0.0, 0.0, 0.0, 0.0]
-    pos4b: [0.0, 1.57, 0.0, 0.0, 0.0]
+    pos4b: [0.0, -1.57, 0.0, 0.0, 0.0]
 
     #goal_names: ["pos1c", "pos2c", "pos3c", "pos4c"]
     pos1c: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos2c: [0.0, 0.0, 1.57, 0.0, 0.0]
     pos3c: [0.0, 0.0, 0.0, 0.0, 0.0]
-    pos4c: [0.0, 0.0, 1.57, 0.0, 0.0]
+    pos4c: [0.0, 0.0, -1.57, 0.0, 0.0]
 
     #goal_names: ["pos1d", "pos2d", "pos3d", "pos4d"]
     pos1d: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos2d: [0.0, 0.0, 0.0, 1.57, 0.0]
     pos3d: [0.0, 0.0, 0.0, 0.0, 0.0]
-    pos4d: [0.0, 0.0, 0.0, 1.57, 0.0]
+    pos4d: [0.0, 0.0, 0.0, -1.57, 0.0]
 
     #goal_names: ["pos1e", "pos2e", "pos3e", "pos4e"]
     pos1e: [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -37,8 +39,13 @@ publisher_forward_position_controller:
     pos3e: [0.0, 0.0, 0.0, 0.0, 0.0]
     pos4e: [0.0, 0.0, 0.0, 0.0, -1.57]
 
-    goal_names: ["pos1", "pos2", "pos3", "pos4"]
+    goal_names: ["pos1", "pos2", "pos3", "pos4", "pos5", "pos6", "pos7", "pos8", "pos9"]
     pos1: [0.0, 0.0, 0.0, 0.0, 0.0]
-    pos2: [1.57, 0.7, 0.7, 0.0, 1.57]
-    pos3: [0.0, 0.7, 0.7, 0.7, 0.0]
-    pos4: [-1.57, 0.7, 0.7, 1.4, -1.57]
+    pos2: [0.3, 0.2, 0.2, 0.0, 0.3]
+    pos3: [0.6, 0.3, 0.3, 0.0, 0.6]
+    pos4: [0.9, 0.4, 0.4, 0.0, 0.9]
+    pos5: [1.2, 0.5, 0.5, 0.0, 1.2]
+    pos6: [1.4, 0.6, 0.6, 0.0, 1.4]
+    pos7: [1.57, 0.7, 0.7, 0.0, 1.57]
+    pos8: [0.0, 0.7, 0.7, 0.7, 0.0]
+    pos9: [-1.57, 0.7, 0.7, 1.4, -1.57]

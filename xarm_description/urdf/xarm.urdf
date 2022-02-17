@@ -89,14 +89,14 @@
         <visual>
             <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/link4.stl" scale="1.0 1.0 1.0" />
+                <mesh filename="package://xarm_description/meshes/stls/link4_6dof.stl" scale="1.0 1.0 1.0" />
             </geometry>
             <material name="DarkGrey" />
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/link4.stl" scale="1.0 1.0 1.0" />
+                <!-- mesh filename="package://xarm_description/meshes/stls/link4.stl" scale="1.0 1.0 1.0" /-->
             </geometry>
         </collision>
         <inertial>
@@ -117,6 +117,26 @@
             <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
             <geometry>
                 <mesh filename="package://xarm_description/meshes/stls/link3.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+
+    <link name="xarm_7_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/link7_6dof.stl" scale="1.0 1.0 1.0" />
+            </geometry>
+            <material name="Blue" />
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="package://xarm_description/meshes/stls/link2.stl" scale="1.0 1.0 1.0" />
             </geometry>
         </collision>
         <inertial>
@@ -206,7 +226,8 @@
     </joint>
 
     <joint name="xarm_4_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0.0 0.09765" />
+        <!-- origin rpy="0 0 0" xyz="0 0.0 0.09765" /-->
+        <origin rpy="0 0 0" xyz="0 0.0 0.097" />
         <axis xyz="1 0 0" />
         <limit effort="1000" lower="-1.910427965" upper="1.910427965" velocity="1.0" />
         <!--safety_controller k_position="30" k_velocity="30" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
@@ -215,20 +236,31 @@
         <child link="xarm_4_link" />
     </joint>
 
+    <joint name="xarm_7_joint" type="revolute">
+        <origin rpy="0 0 0" xyz="0 0 0.090" />
+        <axis xyz="0 0 1" />
+        <!--limit effort="1000" lower="0.0" upper="0.0" velocity="1.0" /-->
+        <limit effort="1000" lower="-1.57" upper="1.57" velocity="1.0" />
+        <!--safety_controller k_position="30" k_velocity="30" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
+        <dynamics damping="1.0"/-->
+        <parent link="xarm_4_link" />
+        <child link="xarm_7_link" />
+    </joint>
+
     <joint name="xarm_3_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0.0 0.09825" />
+        <origin rpy="0 0 0" xyz="0 0.0 0.030" />
         <axis xyz="1 0 0" />
         <limit effort="1000" lower="-1.740612146" upper="1.86797401" velocity="1.0" />
         <!--safety_controller k_position="30" k_velocity="30" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
         <dynamics damping="1.0"/-->
-        <parent link="xarm_4_link" />
+        <parent link="xarm_7_link" />
         <child link="xarm_3_link" />
     </joint>
 
     <joint name="xarm_2_joint" type="revolute">
         <origin rpy="0 0 0" xyz="0 -0.001205 0.05306" />
-        <axis xyz="0 1 0" />
-        <limit effort="1000" lower="-2.17494876" upper="1.63121157" velocity="1.0" />
+        <axis xyz="0 0 1" />
+        <limit effort="1000" lower="-1.208" upper="1.933" velocity="1.0" />
         <!--safety_controller k_position="30" k_velocity="30" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
         <dynamics damping="1.0"/-->
         <parent link="xarm_3_link" />
@@ -274,38 +306,45 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+      <joint name="xarm_7_joint">
+        <command_interface name="position">
+          <param name="min">-1.57</param>
+          <param name="max">1.57</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
       <joint name="xarm_2_joint">
         <command_interface name="position">
-          <param name="min">-2.1749</param>
-          <param name="max">1.6312</param>
+          <param name="min">-1.208</param>
+          <param name="max">1.933</param>
         </command_interface>
         <state_interface name="position"/>
       </joint>
       <joint name="xarm_3_joint">
         <command_interface name="position">
-          <param name="min">-1.7406</param>
-          <param name="max">1.8680</param>
+          <param name="min">-1.613</param>
+          <param name="max">1.528</param>
         </command_interface>
         <state_interface name="position"/>
       </joint>
       <joint name="xarm_4_joint">
         <command_interface name="position">
-          <param name="min">-1.9104</param>
-          <param name="max">1.9104</param>
+          <param name="min">-1.571</param>
+          <param name="max">1.571</param>
         </command_interface>
         <state_interface name="position"/>
       </joint>
       <joint name="xarm_5_joint">
         <command_interface name="position">
-          <param name="min">-1.5920</param>
-          <param name="max">1.8680</param>
+          <param name="min">-1.613</param>
+          <param name="max">1.528</param>
         </command_interface>
         <state_interface name="position"/>
       </joint>
       <joint name="xarm_6_joint">
         <command_interface name="position">
-          <param name="min">-1.7372</param>
-          <param name="max">1.7996</param>
+          <param name="min">-1.706</param>
+          <param name="max">1.436</param>
         </command_interface>
         <state_interface name="position"/>
       </joint>

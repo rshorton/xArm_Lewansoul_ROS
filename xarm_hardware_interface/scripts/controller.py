@@ -151,8 +151,8 @@ class SafeXArm:
         # Maximum movement speed in (range/second)
         self.max_speed = 100 #250
 
-        #self.move_all([0] * 6)
-        #time.sleep(2)
+        self.move_all([0] * 6)
+        time.sleep(2)
 
     def read_pos(self):
         return flip(self.arm.read_pos())
@@ -168,11 +168,11 @@ class SafeXArm:
         pos = (pos + 1) / 2
         target = self.min_pos + pos * (self.max_pos - self.min_pos)
 
-        print type(np)
-        print "Before flip:", target
+        #print type(np)
+        print(f"Before flip: {target}")
 
         target = flip(target, 0).astype(np.uint16)
-        print "After flip:",target
+        print(f"After flip: {target}")
 
         # TODO: compute time needed based on last position
         # Compute time needed to move each joint to target given max_speed
@@ -186,42 +186,52 @@ class SafeXArm:
 
 def demo():
     arm = XArm()
-    print arm.read_pos()
+    print(f"{arm.read_pos()}")
+
+    t = 500
 
     # Close gripper
-    arm.move_to(id=1, pos=685, time=1000)
+    arm.move_to(id=1, pos=685, time=t)
     time.sleep(2)
 
     # Move Joint 4 
-    arm.move_to(id=4, pos=500, time=1000)
+    arm.move_to(id=4, pos=100, time=t)
+    time.sleep(2)
+
+    # Move Joint 4 
+    arm.move_to(id=4, pos=400, time=t)
+    time.sleep(2)
+
+    # Move Joint 4 
+    arm.move_to(id=4, pos=00, time=t)
     time.sleep(2)
 
     # Move Joint 5 
-    arm.move_to(id=5, pos=500, time=1000)
+    arm.move_to(id=5, pos=200, time=t)
     time.sleep(2)  
 
     # Move Joint 3 
-    arm.move_to(id=3, pos=500, time=1000)
+    arm.move_to(id=3, pos=500, time=t)
     time.sleep(2)
 
     # Open gripper
-    arm.move_to(id=1, pos=115, time=1000)
+    arm.move_to(id=1, pos=115, time=t)
     time.sleep(2)
 
     # Close gripper
-    arm.move_to(id=1, pos=685, time=1000)
+    arm.move_to(id=1, pos=685, time=t)
     time.sleep(2)
 
     # Move Joint 3 
-    arm.move_to(id=3, pos=150, time=1000)
+    arm.move_to(id=3, pos=150, time=t)
     time.sleep(2)
 
     # Move Joint 2 
-    arm.move_to(id=2, pos=1000, time=1000)
+    arm.move_to(id=2, pos=800, time=t)
     time.sleep(2)
     
     # Move Joint 2 
-    arm.move_to(id=2, pos=590, time=1000)
+    arm.move_to(id=2, pos=590, time=t)
     time.sleep(2)
 
 demo()

@@ -4,7 +4,7 @@ arm_end_effector:
   kinematics_solver_search_resolution: 0.005
   kinematics_solver_timeout: 0.005
 xarm:
-  kinematics_solver: xarm_xarm/IKFastKinematicsPlugin
-  kinematics_solver_attempts: 3
+  kinematics_solver: kdl_kinematics_plugin/KDLKinematicsPlugin
+  kinematics_solver_attempts: 5
   kinematics_solver_search_resolution: 0.005
   kinematics_solver_timeout: 0.005

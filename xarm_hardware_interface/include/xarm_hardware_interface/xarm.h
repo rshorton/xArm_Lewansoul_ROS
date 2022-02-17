@@ -47,7 +47,7 @@ namespace xarm
 			std::thread thread_;
 
 			std::map<std::string, int> joint_name_map_;
-			std::map<std::string, int[1][3]> joint_range_limits_;
+			std::map<std::string, int[3]> joint_range_limits_;
 
 			// Map of joint to the last position set on the joint (in xarm units)
 			std::map<std::string, int> last_pos_set_map_;

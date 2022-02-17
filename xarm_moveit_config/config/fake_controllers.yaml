@@ -1,6 +1,7 @@
 controller_list:
   - name: fake_xarm_controller
     joints:
+      - xarm_7_joint
       - xarm_6_joint
       - xarm_5_joint
       - xarm_4_joint
