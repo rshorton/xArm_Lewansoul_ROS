@@ -32,6 +32,23 @@
         <joint name="xarm_5_joint" value="0" />
         <joint name="xarm_6_joint" value="0" />
     </group_state>
+
+    <group_state name="closed" group="arm_end_effector">
+        <joint name="xarm_1_joint" value="0.004" />
+    </group_state>
+    <group_state name="open25pct" group="arm_end_effector">
+        <joint name="xarm_1_joint" value="0.010" />
+    </group_state>
+    <group_state name="open50pct" group="arm_end_effector">
+        <joint name="xarm_1_joint" value="0.016" />
+    </group_state>
+    <group_state name="open75pct" group="arm_end_effector">
+        <joint name="xarm_1_joint" value="0.022" />
+    </group_state>
+    <group_state name="open" group="arm_end_effector">
+        <joint name="xarm_1_joint" value="0.028" />
+    </group_state>
+
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="arm_ee" parent_link="xarm_gripper_base_link" group="arm_end_effector" parent_group="xarm" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
@@ -43,6 +60,7 @@
     <disable_collisions link1="xarm_3_link" link2="xarm_6_link" reason="Never" />
     <disable_collisions link1="xarm_4_link" link2="xarm_5_link" reason="Adjacent" />
     <disable_collisions link1="xarm_4_link" link2="xarm_6_link" reason="Never" />
+    <disable_collisions link1="xarm_4_link" link2="xarm_7_link" reason="Adjacent" />
     <disable_collisions link1="xarm_4_link" link2="xarm_base_link" reason="Never" />
     <disable_collisions link1="xarm_5_link" link2="xarm_6_link" reason="Adjacent" />
     <disable_collisions link1="xarm_6_link" link2="xarm_base_link" reason="Adjacent" />

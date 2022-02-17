@@ -35,12 +35,22 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 add_executable(xarm_move_group_test
     src/move_group_test.cpp)
 
+add_executable(xarm_move_group_pick
+    src/move_group_pick.cpp)
+
 ament_target_dependencies(xarm_move_group_test
+    ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
+
+ament_target_dependencies(xarm_move_group_pick
     ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
 
 include_directories(./thirdparty/nlohmann-json)
 
 install(TARGETS xarm_move_group_test
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+install(TARGETS xarm_move_group_pick
     DESTINATION lib/${PROJECT_NAME}
 )
 
