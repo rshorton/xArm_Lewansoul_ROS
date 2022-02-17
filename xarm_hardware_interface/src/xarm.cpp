@@ -393,13 +393,14 @@ namespace xarm
 			buf[1] = 0x55;
 			buf[2] = 9;
 			buf[3] = 20;
-			buf[4] = 6;
+			buf[4] = 7;
 			buf[5] = 1;
 			buf[6] = 2;
 			buf[7] = 3;
 			buf[8] = 4;
 			buf[9] = 5;
 			buf[10] = 6;
+			buf[11] = 7;
 			int res = hid_write(handle_, buf, 17);
 
 			if (res < 0) {
