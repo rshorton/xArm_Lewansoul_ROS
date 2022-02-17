@@ -96,7 +96,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <!-- mesh filename="package://xarm_description/meshes/stls/link4.stl" scale="1.0 1.0 1.0" /-->
+                <mesh filename="package://xarm_description/meshes/stls/link4_6dof.stl" scale="1.0 1.0 1.0" />
             </geometry>
         </collision>
         <inertial>
@@ -136,7 +136,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
             <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/link2.stl" scale="1.0 1.0 1.0" />
+                <mesh filename="package://xarm_description/meshes/stls/link7_6dof.stl" scale="1.0 1.0 1.0" />
             </geometry>
         </collision>
         <inertial>
