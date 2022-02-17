@@ -217,8 +217,8 @@ int main(int argc, char** argv)
       moveit::planning_interface::MoveGroupInterface::Plan my_plan;
       bool success = (move_group.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
 
-      /// print the plan
 #if 0
+      /// print the plan
       RCLCPP_INFO(LOGGER, "%lu %lu %lu\n",  my_plan.start_state_.joint_state.name.size(),
         my_plan.start_state_.joint_state.position.size(),
         my_plan.start_state_.joint_state.velocity.size());
@@ -235,7 +235,6 @@ int main(int argc, char** argv)
         RCLCPP_INFO(LOGGER, "time_from_start %u %u\n", my_plan.trajectory_.joint_trajectory.points[i].time_from_start.sec, my_plan.trajectory_.joint_trajectory.points[i].time_from_start.nanosec);
       }
 #endif    
-      /////////////////////////////////
 
       RCLCPP_INFO(LOGGER, "Visualizing plan 1 (pose goal) %s", success ? "" : "FAILED");
 
@@ -277,7 +276,6 @@ int main(int argc, char** argv)
 }
 
 
-#if 0
 
 #if 0
   // Planning to a joint-space goal
@@ -404,6 +402,8 @@ int main(int argc, char** argv)
   move_group.clearPathConstraints();
 #endif
 
+#if 0
+
   // Cartesian Paths
   // ^^^^^^^^^^^^^^^
   // You can plan a Cartesian path directly by specifying a list of waypoints
@@ -412,28 +412,35 @@ int main(int argc, char** argv)
   // need to be added to the waypoint list but adding it can help with visualizations
   std::vector<geometry_msgs::msg::Pose> waypoints;
 
+  geometry_msgs::msg::PoseStamped start_pose = move_group.getCurrentPose();
+  RCLCPP_INFO(LOGGER, "Actual pose: x,y,z = %f, %f, %f, orientation = %f, %f, %f, %f",
+    start_pose.pose.position.x,
+    start_pose.pose.position.y,
+    start_pose.pose.position.z,
+    start_pose.pose.orientation.x,
+    start_pose.pose.orientation.y,
+    start_pose.pose.orientation.z,
+    start_pose.pose.orientation.w);
 
   geometry_msgs::msg::Pose start_pose2;
-  start_pose2.orientation.w = 1.0;
-  start_pose2.position.x = 0.04158;
-  start_pose2.position.y = -0.058769;
-  start_pose2.position.z = 0.249794;
-
+  start_pose2.position = start_pose.pose.position;
+  start_pose2.orientation = start_pose.pose.orientation;
   waypoints.push_back(start_pose2);
 
   geometry_msgs::msg::Pose target_pose3 = start_pose2;
 
-  target_pose3.position.z -= 0.05;
-  waypoints.push_back(target_pose3);  // down
-
-  target_pose3.position.y += 0.08;
+#if 0
+  target_pose3.position.z += 0.05;
+  waypoints.push_back(target_pose3);  // up
+#endif
+#if 1
+  target_pose3.position.y -= 0.04;
   waypoints.push_back(target_pose3);  // right
-
-  //target_pose3.position.z += 0.02;
-  //target_pose3.position.y += 0.02;
-  target_pose3.position.x -= 0.08;
-  waypoints.push_back(target_pose3);  // up and left
-
+#endif
+#if 0
+  target_pose3.position.x += 0.05;
+  waypoints.push_back(target_pose3);  // forward
+#endif
   // We want the Cartesian path to be interpolated at a resolution of 1 cm
   // which is why we will specify 0.01 as the max step in Cartesian
   // translation.  We will specify the jump threshold as 0.0, effectively disabling it.
@@ -463,8 +470,11 @@ int main(int argc, char** argv)
   move_group.execute(trajectory);
   visual_tools.prompt("Press 'next' in the RvizVisualToolsGui window to continue the demo");
 
+return 0;
+}
+#endif
 
-
+#if 0
   // Adding objects to the environment
   // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   //
