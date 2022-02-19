@@ -52,17 +52,9 @@
 
 #include <json.hpp>
 
-// Define this to step thru the poses using the RvizVisualToolsGui 'Next' button
-#undef MANUAL_MODE
-
 #define TO_RAD(x) ((x)/180.0*M_PI)
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("xarm_move_group_test");
-
-static const std::string POSE_FILE_NAME = "test_poses.json";
-// Magic 'x' values that can be used in the test poses to loop or prematurely stop processing the list
-static const int LOOP_MAGIC_VALUE = 99999.0;
-static const int FINISH_MAGIC_VALUE = 99998.0;
 
 using json = nlohmann::json;
 
@@ -77,28 +69,51 @@ int main(int argc, char** argv)
   executor.add_node(move_group_node);
   std::thread([&executor]() { executor.spin(); }).detach();
 
-  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-
   moveit::planning_interface::MoveGroupInterface move_group(move_group_node, "xarm");
   
-  // Getting Basic Information
-  RCLCPP_INFO(LOGGER, "Planning frame: %s", move_group.getPlanningFrame().c_str());
-  RCLCPP_INFO(LOGGER, "End effector link: %s", move_group.getEndEffectorLink().c_str());
-  RCLCPP_INFO(LOGGER, "Available Planning Groups:");
-  std::copy(move_group.getJointModelGroupNames().begin(), move_group.getJointModelGroupNames().end(),
-            std::ostream_iterator<std::string>(std::cout, ", "));
+  // Add object to the planning scene that represents the platform where 
+  // picked object will be placed.
+  moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
+  moveit_msgs::msg::CollisionObject collision_object;
+  collision_object.header.frame_id = move_group.getPlanningFrame();
+
+  // The id of the object is used to identify it.
+  collision_object.id = "platform";
+
+  shape_msgs::msg::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions.resize(3);
+  primitive.dimensions[primitive.BOX_X] = 0.150;
+  primitive.dimensions[primitive.BOX_Y] = 0.280;
+  primitive.dimensions[primitive.BOX_Z] = 0.150;
+
+  // Define a pose for the box (specified relative to frame_id).
+  geometry_msgs::msg::Pose box_pose;
+  box_pose.orientation.w = 1.0;
+  box_pose.position.x =  0.160;
+  box_pose.position.y =  0.0;
+  box_pose.position.z =  0.190/2;
+
+  collision_object.primitives.push_back(primitive);
+  collision_object.primitive_poses.push_back(box_pose);
+  collision_object.operation = collision_object.ADD;
+
+  std::vector<moveit_msgs::msg::CollisionObject> collision_objects;
+  collision_objects.push_back(collision_object);
+  planning_scene_interface.addCollisionObjects(collision_objects);
   
-  {
-	  geometry_msgs::msg::PoseStamped pose = move_group.getCurrentPose();
-	  RCLCPP_INFO(LOGGER, "Starting pose: x,y,z = %f, %f, %f, orientation = %f, %f, %f, %f",
-			  pose.pose.position.x,
-			  pose.pose.position.y,
-			  pose.pose.position.z,
-			  pose.pose.orientation.x,
-			  pose.pose.orientation.y,
-			  pose.pose.orientation.z,
-			  pose.pose.orientation.w);
-  }
+  // Get Basic Information
+  RCLCPP_INFO(LOGGER, "Planning frame: %s", move_group.getPlanningFrame().c_str());
+  
+  geometry_msgs::msg::PoseStamped pose = move_group.getCurrentPose();
+  RCLCPP_INFO(LOGGER, "Starting pose: x,y,z = %f, %f, %f, orientation = %f, %f, %f, %f",
+      pose.pose.position.x,
+      pose.pose.position.y,
+      pose.pose.position.z,
+      pose.pose.orientation.x,
+      pose.pose.orientation.y,
+      pose.pose.orientation.z,
+      pose.pose.orientation.w);
 
   move_group.setMaxVelocityScalingFactor(1.0);
   move_group.setMaxAccelerationScalingFactor(0.10);
@@ -109,11 +124,10 @@ int main(int argc, char** argv)
   move_group.setJointValueTarget(move_group.getNamedTargetValues("home"));
   move_group.move();
 
-  // Move to above pick position
-
   tf2::Quaternion q;
   geometry_msgs::msg::Pose target;
 
+  // Move to above pick position
   q.setRPY(TO_RAD(180.0), TO_RAD(0.0), TO_RAD(0.0));
   target.orientation = tf2::toMsg(q);
 
@@ -121,45 +135,56 @@ int main(int argc, char** argv)
   target.position.y = -0.157;
   target.position.z =  0.085;
 
+  RCLCPP_INFO(LOGGER, "Move to above object");
   move_group.setPoseTarget(target);
   move_group.move();
 
   // Open gripper
+  RCLCPP_INFO(LOGGER, "Open gripper");
   moveit::planning_interface::MoveGroupInterface move_group_eff(move_group_node, "arm_end_effector");
   move_group_eff.setJointValueTarget(move_group_eff.getNamedTargetValues("open"));
   move_group_eff.move();
   
   // Move downward so that gripper is around object
+  RCLCPP_INFO(LOGGER, "Move down to object");
   geometry_msgs::msg::Pose target_grab = target;
   target_grab.position.z = target.position.z - 0.14;
   move_group.setPoseTarget(target_grab);
   move_group.move();
 
   // Close gripper
+  RCLCPP_INFO(LOGGER, "Close gripper");
   move_group_eff.setJointValueTarget(move_group_eff.getNamedTargetValues("closed"));
   move_group_eff.move();
 
   // Move to above drop point
-  target.position.x = -0.084;
-  target.position.y = -0.090;
-  target.position.z =  0.150;
+  q.setRPY(TO_RAD(90.0), TO_RAD(0.0), TO_RAD(90.0));
+  target.orientation = tf2::toMsg(q);
+
+  target.position.x =  0.010;
+  target.position.y =  0.000;
+  target.position.z =  0.260;
 
   move_group.setPoseTarget(target);
   move_group.move();
 
   // Move to drop point
-  target.position.x = -0.084;
-  target.position.y = -0.069;
-  target.position.z =  0.118;
+  RCLCPP_INFO(LOGGER, "Move to drop location");
+
+  target.position.x =  0.030;
+  target.position.y =  0.000;
+  target.position.z =  0.210;
 
   move_group.setPoseTarget(target);
   move_group.move();
 
   // Open gripper
+  RCLCPP_INFO(LOGGER, "Open gripper");
   move_group_eff.setJointValueTarget(move_group_eff.getNamedTargetValues("open"));
   move_group_eff.move();
 
   // Move to home  
+  RCLCPP_INFO(LOGGER, "Move to home location");
   move_group.setJointValueTarget(move_group.getNamedTargetValues("home"));
   move_group.move();
 
