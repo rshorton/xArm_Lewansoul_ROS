@@ -12,6 +12,10 @@ To manually control arm using the Motion Planning plug-in of RViz, run:
 
 Use the positioning controls to move the arm and then select 'Plan & Execute'.
 
-Tested with ROS2 Galactic (latest updates as of 2/1/22) and source build of moveit2 and ros2_control (https://moveit.picknik.ai/galactic/doc/tutorials/getting_started/getting_started.html)
+Example pick and place test app:
 
-Example pick and place video:   https://youtu.be/PhVF9UsyZmc
+* src: xarm_move_group_test/src/move_group_pick.cpp
+* video: https://youtu.be/PhVF9UsyZmc
+
+Tested with ROS2 Galactic (latest updates as of 2/1/22) and source build of moveit2 and ros2_control (https://moveit.picknik.ai/galactic/doc/tutorials/getting_started/getting_started.html).
+
