@@ -8,9 +8,14 @@
 #include "rclcpp/rclcpp.hpp"
 #include "xarm_hardware_interface/xarm.h"
 
+#include "xarm_hardware_interface/xarm_serial.hpp"
+#include "xarm_hardware_interface/xarm_usb.hpp"
+
 #define MAX_STR 255
 #define PI 3.14159265359
 #define INVALID_POS 99999	// Invalid servo value
+
+//#define XARM_USB
 
 const int UPDATE_PERIOD_MS = 30;
 
@@ -25,13 +30,15 @@ const std::string MANUAL_MODE_ENABLE_FILE = "/tmp/xarm_enable_manual_mode";
 const int SMALL_CHANGE = 20;
 const int LARGE_CHANGE_MOVE_TIME = 1500;
 
+const int NUM_JOINTS = 7;
+
+const std::string SERIAL_DEV = "/dev/ttyUSB0";
+
 namespace xarm
 {
 	xarm::xarm():
 		inited_(false),
 		run_(false),
-		handle_(NULL),
-		devs_(NULL),
 		gripper_pos_min_m_(0.0),
 		gripper_pos_min_s_(0.0),
 		gripper_pos_max_s_(0.0),
@@ -45,10 +52,10 @@ namespace xarm
 		if (inited_) {
 			run_ = false;
 			thread_.join();
+		}
 
-			hid_close(handle_);
-			/* Free static HIDAPI objects. */
-			hid_exit();
+		if (drvr_) {
+			drvr_->close();
 		}
 	}
 
@@ -58,42 +65,21 @@ namespace xarm
 			return false;
 		}
 
-		// Initialize the hidapi library
-		if (hid_init()) {
+		std::string dev;
+#if defined(XARM_USB)
+		drvr_ = std::make_unique<xarm_usb>();
+#else
+		drvr_ = std::make_unique<xarm_serial>();
+		dev = SERIAL_DEV;
+#endif
+		if (!drvr_) {
+			return false;
+		}				
+
+		if (!drvr_->open(dev)) {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to open driver");
 			return false;
 		}
-
-		bool found = false;
-		printDeviceInformation();
-		devs_ = hid_enumerate(0x0, 0x0);
-		struct hid_device_info* cur_dev = devs_;
-
-		while (cur_dev) {
-
-			std::wstring ws(cur_dev->product_string);
-			std::string product(ws.begin(), ws.end());
-
-			if (product=="LOBOT") {
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "LOBOT found ");
-				found = true;
-				break;
-			}
-			cur_dev = cur_dev->next;
-		}
-
-		if (!found) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "LOBOT not found, make sure it is power on ");
-			return false;
-		}
-
-		handle_ = hid_open_path(cur_dev->path);
-
-		if (!handle_) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "unable to open device");
-			return false;
-		}
-		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Device opened ");
-		hid_free_enumeration(devs_);
 
 		//Dictionary of joint_names to joint_id
 		joint_name_map_.insert(std::make_pair("xarm_1_joint" , 1));
@@ -204,24 +190,6 @@ namespace xarm
 		}
 	}
 
-	void xarm::printDeviceInformation()
-	{
-		devs_ = hid_enumerate(0x0, 0x0);
-		struct hid_device_info *cur_dev = devs_;
-		while (cur_dev) {
-#if 0
-			printf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-			printf("\n");
-			printf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-			printf("  Product:      %ls\n", cur_dev->product_string);
-			printf("  Release:      %hx\n", cur_dev->release_number);
-			printf("  Interface:    %d\n",  cur_dev->interface_number);
-			printf("\n");
-#endif
-			cur_dev = cur_dev->next;
-		}
-	}
-
 	int xarm::convertRadToUnit(std::string joint_name, double rad)
 	{
 		// Range in servo units
@@ -284,138 +252,65 @@ namespace xarm
 		return position_unit;
 	}
 
+	// FIX - maybe break into separate reads since serial driver reads one at a time anyway
 	// Read all joint positions
 	void xarm::readJointPositions(std::map<std::string, int> &pos_map)
 	{
-		//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition start");
+		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition start");
 
-		unsigned char buf[65];
-		buf[0] = 0x55;
-		buf[1] = 0x55;
-		buf[2] = 9;
-		buf[3] = 21;
-		buf[4] = 7;
-		buf[5] = 1;
-		buf[6] = 2;
-		buf[7] = 3;
-		buf[8] = 4;
-		buf[9] = 5;
-		buf[10] = 6;
-		buf[11] = 7;
-		int res = hid_write(handle_, buf, 17);
+		std::vector<uint16_t> pos(NUM_JOINTS, 0);
+		int joint_id;
+		if (drvr_->readJointPositionAll(pos)) {
+			for (auto const &j: joint_name_map_) {
+				std::string name = j.first;
 
-		if (res < 0) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()");
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls", hid_error(handle_));
-		}
+				// If mirrored joint 1
+				if (name == "xarm_1_joint_mirror") {
+					joint_id = joint_name_map_["xarm_1_joint"];
+				} else {
+					joint_id = j.second;
+				}
 
-		do {
-			res = hid_read(handle_, buf, sizeof(buf));
-			if (res > 0) {
-				break;
-			} else if (res == 0) {
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "waiting...");
-			} else if (res < 0) {
-				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to read()");
-			}				
-			usleep(500*1000);
-		} while (res == 0);
+				// 1-based joint IDs
+				uint16_t p = pos[joint_id - 1];
+				pos_map[name] = p;
 
-		int p_lsb, p_msb, unit, joint_id;
-
-		for (auto const &j: joint_name_map_) {
-			std::string name = j.first;
-
-			// If mirrored joint 1
-			if (name == "xarm_1_joint_mirror") {
-				joint_id = joint_name_map_["xarm_1_joint"];
-			} else {
-				joint_id = j.second;
+				RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
+					name.c_str(), p, jointValueToPosition(name, p));
 			}
-
-			p_lsb= buf[2+3*joint_id+1];
-			p_msb= buf[2+3*joint_id+2];
-			unit= (p_msb << 8) + p_lsb;
-
-			pos_map[name] = unit;
-
-			RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
-				name.c_str(), unit, jointValueToPosition(name, unit));
+		} else {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to read joint position");
 		}
-		//RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition exit ");
+		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition exit");
 	}
 
 	// Set the specified joint position
 	void  xarm::setJointPosition(std::string joint_name, int position, int time)
 	{
-		unsigned char buf[65];
-		unsigned char t_lsb,t_msb, p_lsb, p_msb;
-		int res;
-
 		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %d, time %d",
 				joint_name.c_str(), position, time);
 
-        t_lsb= time & 0xFF;
-		t_msb = time >> 8;
-		p_lsb = position & 0xFF;
-		p_msb = position >> 8;
-
-		buf[0] = 0x55;
-		buf[1] = 0x55;
-		buf[2] = 8;
-		buf[3] = 0x03;
-		buf[4] = 1;
-		buf[5] = t_lsb;
-		buf[6] = t_msb;
-		buf[7] = joint_name_map_[joint_name];
-		buf[8] = p_lsb;
-		buf[9] = p_msb;
-
-		res = hid_write(handle_, buf, 17);
-
-		if (res < 0) {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write()");
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls", hid_error(handle_));
+		if (!drvr_->setJointPosition(joint_name_map_[joint_name], position, time)) {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to set joint position for servo %s",
+				joint_name.c_str());
 		}
+		return;
 	}
 
+	// Check for the file that is used to manually nenable/disable this mode for testing
 	bool xarm::manual_mode_enabled()
 	{
 		return access(MANUAL_MODE_ENABLE_FILE.c_str(), F_OK ) != -1;
 	}
 
+	// Manual mode turns off the motor in the servo so you can back drive to a desired position
 	void xarm::set_manual_mode(bool enable)
 	{
-		if (enable) {
-			// Send the 'off' command for all servos
-			unsigned char buf[65];
-			buf[0] = 0x55;
-			buf[1] = 0x55;
-			buf[2] = 9;
-			buf[3] = 20;
-			buf[4] = 7;
-			buf[5] = 1;
-			buf[6] = 2;
-			buf[7] = 3;
-			buf[8] = 4;
-			buf[9] = 5;
-			buf[10] = 6;
-			buf[11] = 7;
-			int res = hid_write(handle_, buf, 17);
+		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Enable manual mode: %C", enable? 'Y': 'N');
 
-			if (res < 0) {
-				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Unable to write 'servo off' command");
-				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Error: %ls", hid_error(handle_));
-			}
-		} else {
-			// Send a position command to each servo to re-enable it
-			for (auto const &p: last_pos_get_map_) {
-				if (p.first != "xarm_1_joint_mirror") {
-					setJointPosition(p.first, p.second, 1000);
-				}					
-			}
-		}
-		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Enabled manual mode: %C", enable? 'Y': 'N');
+		if (!drvr_->setManualModeAll(enable, NUM_JOINTS)) {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to set joint mode enable");
+		}			
 	}
 
 	void xarm::Process()

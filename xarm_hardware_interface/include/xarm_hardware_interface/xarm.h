@@ -8,6 +8,8 @@
 #include <thread>
 #include <mutex>
 
+#include "xarm_hardware_interface/xarm_drvr.hpp"
+
 namespace xarm
 {
 	class xarm
@@ -23,16 +25,15 @@ namespace xarm
 
 		private:
 			void Process();
-			void printDeviceInformation();
 
 			double jointValueToPosition(std::string joint_name, int jointValue);
 			int positionToJointValue(std::string joint_name, double position);
 
-			void readJointPositions(std::map<std::string, int> &pos_map);
-			void setJointPosition(std::string joint_name, int position, int time);
-
 			double convertUnitToRad(std::string joint_name, int unit);
 			int convertRadToUnit(std::string joint_name, double rad);
+
+			void readJointPositions(std::map<std::string, int> &pos_map);
+			void setJointPosition(std::string joint_name, int position, int time);
 
 			void set_manual_mode(bool enable);
 			bool manual_mode_enabled();
@@ -40,8 +41,7 @@ namespace xarm
 			bool inited_;
 			bool run_;
 
-			hid_device *handle_;
-			struct hid_device_info *devs_;
+			std::unique_ptr<xarm_drvr> drvr_;
 
 			std::mutex mutex_;
 			std::thread thread_;

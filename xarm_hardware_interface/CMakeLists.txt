@@ -24,12 +24,30 @@ add_library(
   SHARED
   src/xarm_system.cpp
   src/xarm.cpp
+  src/xarm_usb.cpp
+  src/xarm_serial.cpp
+  src/serial_servo_bus.cpp
 )
+
+add_executable(
+  "test_drvr"
+  src/test.cpp
+  src/xarm_serial.cpp
+  src/serial_servo_bus.cpp
+)
+
+target_include_directories(
+  "test_drvr"
+  PRIVATE
+  include
+)
+
 target_include_directories(
   ${PROJECT_NAME}
   PRIVATE
   include
 )
+
 
 ament_target_dependencies(
   ${PROJECT_NAME}
@@ -37,6 +55,12 @@ ament_target_dependencies(
   pluginlib
   rclcpp
   hidapi-hidraw
+)
+
+ament_target_dependencies(
+  "test_drvr"
+  hardware_interface
+  rclcpp
 )
 
 target_link_libraries(${PROJECT_NAME} PkgConfig::hidapi-hidraw)
@@ -48,6 +72,12 @@ install(
   TARGETS ${PROJECT_NAME}
   DESTINATION lib
 )
+
+install(
+  TARGETS "test_drvr"
+  DESTINATION lib
+)
+
 install(
   DIRECTORY include/
   DESTINATION include
