@@ -24,13 +24,31 @@
         <joint name="xarm_5_joint" value="0" />
         <joint name="xarm_6_joint" value="0" />
     </group_state>
-    <group_state name="home" group="xarm">
+    <group_state name="home_top" group="xarm">
         <joint name="xarm_7_joint" value="0" />
         <joint name="xarm_2_joint" value="0" />
         <joint name="xarm_3_joint" value="0" />
         <joint name="xarm_4_joint" value="0" />
         <joint name="xarm_5_joint" value="0" />
         <joint name="xarm_6_joint" value="0" />
+    </group_state>
+
+    <group_state name="home_left" group="xarm">
+        <joint name="xarm_7_joint" value="0" />
+        <joint name="xarm_2_joint" value="0" />
+        <joint name="xarm_3_joint" value="1.69" />
+        <joint name="xarm_4_joint" value="1.75" />
+        <joint name="xarm_5_joint" value="-0.646" />
+        <joint name="xarm_6_joint" value="1.57" />
+    </group_state>
+
+    <group_state name="home" group="xarm">
+        <joint name="xarm_7_joint" value="0" />
+        <joint name="xarm_2_joint" value="0" />
+        <joint name="xarm_3_joint" value="1.69" />
+        <joint name="xarm_4_joint" value="1.75" />
+        <joint name="xarm_5_joint" value="-0.646" />
+        <joint name="xarm_6_joint" value="-1.57" />
     </group_state>
 
     <group_state name="closed" group="arm_end_effector">
@@ -64,4 +82,5 @@
     <disable_collisions link1="xarm_4_link" link2="xarm_base_link" reason="Never" />
     <disable_collisions link1="xarm_5_link" link2="xarm_6_link" reason="Adjacent" />
     <disable_collisions link1="xarm_6_link" link2="xarm_base_link" reason="Adjacent" />
+    <disable_collisions link1="xarm_base_link" link2="vertical_body" reason="Adjacent" />
 </robot>
