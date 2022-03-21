@@ -17,12 +17,18 @@
 
 //#define XARM_USB
 
-const int UPDATE_PERIOD_MS = 30;
+//const int UPDATE_PERIOD_MS = 30;
+const int UPDATE_PERIOD_MOVING_MS = 20;
+const int UPDATE_PERIOD_IDLE_MS = 100;
+
+// Use the idle update period if this many 'moving' update
+// periods occur without getting a move command.
+const int IDLE_ENTRY_CNT = 50;
 
 // How often to check for the file that indicates the control loop should be
 // in manual mode where the user can manually move the robot arm (for specifying
 // positions for training.)
-const int UPDATE_CNT_CHK_FOR_MANUAL_MODE = (2000/UPDATE_PERIOD_MS);
+const int UPDATE_CNT_CHK_FOR_MANUAL_MODE = (2000/UPDATE_PERIOD_IDLE_MS);
 // File to create to enable the manual mode
 const std::string MANUAL_MODE_ENABLE_FILE = "/tmp/xarm_enable_manual_mode";
 
@@ -32,7 +38,7 @@ const int LARGE_CHANGE_MOVE_TIME = 1500;
 
 const int NUM_JOINTS = 7;
 
-const std::string SERIAL_DEV = "/dev/ttyUSB0";
+const std::string SERIAL_DEV = "/dev/servo_driver";
 
 namespace xarm
 {
@@ -95,7 +101,11 @@ namespace xarm
 		// corresponding to phy units of meters:  0.003 - 0.028
 		// 0.3 is 1/2 the total grip width since mimic joint used in urdf
 		gripper_pos_min_m_ = 0.003; // meters
-		gripper_pos_min_s_ = 700.0; // servo units
+		// Fix - cleanup, 700 drives the servo to the mechanical limit
+		// of the grabber and causes the servo motor to overheat.
+		// 650 seems like a same max.  What does that make the physical range?
+//		gripper_pos_min_s_ = 700.0; // servo units
+		gripper_pos_min_s_ = 650.0; // servo units
 		gripper_pos_max_s_ = 200.0;
 								  // scale factor: mult scale by phy units in meter to get servo units
 		gripper_pos_m_to_s_factor_ = (gripper_pos_max_s_ - gripper_pos_min_s_)/(0.028 - gripper_pos_min_m_);
@@ -318,13 +328,15 @@ namespace xarm
 		int read_pos_delay_cnt = 0;
 		int ck_for_manual_mode_cnt = 0;
 		bool manual_mode = false;
+		bool idle = false;
+		int ck_for_idle_cnt = 0;
 
 		while (run_) {
-			auto next_update_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(UPDATE_PERIOD_MS);
+			auto next_update_time = std::chrono::steady_clock::now();
 
 			RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Update");
 
-			if (--ck_for_manual_mode_cnt <= 0) {
+			if (idle && --ck_for_manual_mode_cnt <= 0) {
 				ck_for_manual_mode_cnt = UPDATE_CNT_CHK_FOR_MANUAL_MODE;
 				bool enabled = manual_mode_enabled();
 				if (manual_mode) {
@@ -351,10 +363,11 @@ namespace xarm
 				cmd = last_pos_set_map_;
 				new_cmd = new_cmd_;
 				new_cmd_ = false;
-				read_pos_delay_cnt = 1;
 			}
 
 			if (new_cmd) {
+				read_pos_delay_cnt = 1;
+
 				for (auto const &c: cmd) {
 					int set_pos = c.second;
 					const std::string &joint = c.first;
@@ -364,12 +377,22 @@ namespace xarm
 					// being received.  For cases where the position represents a large change such as during initialization
 					// when driven with arbitrary joint settings, use a slow movement time to keep from jerking the arm.
 					setJointPosition(joint, set_pos, 
-						abs(set_pos - last_pos_get_map_[joint]) < SMALL_CHANGE? UPDATE_PERIOD_MS: LARGE_CHANGE_MOVE_TIME);
+						abs(set_pos - last_pos_get_map_[joint]) < SMALL_CHANGE? UPDATE_PERIOD_MOVING_MS: LARGE_CHANGE_MOVE_TIME);
 				}
+				if (idle) {
+					RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Entering running mode");
+					idle = false;
+				}
+				ck_for_idle_cnt = 0;
+				ck_for_manual_mode_cnt = 0;
+			} else if (!idle && ck_for_idle_cnt++ > IDLE_ENTRY_CNT) {
+				idle = true;
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Entering idle mode");
 			}
 
 			// Don't read while moving since it causes jerks in the motion.  Update after commands stop.
 			if (!new_cmd && --read_pos_delay_cnt <= 0) {
+				read_pos_delay_cnt = 5;
 				std::map<std::string, int> pos_map = last_pos_get_map_;
 				readJointPositions(pos_map);
 				{
@@ -377,6 +400,8 @@ namespace xarm
 					last_pos_get_map_ = pos_map;
 				}
 			}
+
+			next_update_time += std::chrono::milliseconds(idle? UPDATE_PERIOD_IDLE_MS: UPDATE_PERIOD_MOVING_MS);
 
 			// Sleep for whatever remaining time until the next update
 		    std::this_thread::sleep_until(next_update_time);
