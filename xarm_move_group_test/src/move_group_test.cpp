@@ -34,6 +34,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
+#if 0  // Disable until moveit_visual_tools available without source build
+
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 
@@ -646,4 +648,6 @@ return 0;
   rclcpp::shutdown();
   return 0;
 }
+#endif
+
 #endif
