@@ -37,11 +37,6 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
 
-    # Command-line arguments
-    tutorial_arg = DeclareLaunchArgument(
-        "rviz_tutorial", default_value="False", description="Tutorial flag"
-    )
-
     db_arg = DeclareLaunchArgument(
         "db", default_value="False", description="Database flag"
     )
@@ -122,40 +117,6 @@ def generate_launch_description():
         ],
     )
 
-    # RViz
-    tutorial_mode = LaunchConfiguration("rviz_tutorial")
-    rviz_base = os.path.join(get_package_share_directory("xarm_moveit_config"), "launch")
-    rviz_full_config = os.path.join(rviz_base, "moveit.rviz")
-    rviz_empty_config = os.path.join(rviz_base, "moveit_empty.rviz")
-    rviz_node_tutorial = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_empty_config],
-        parameters=[
-            robot_description,
-            robot_description_semantic,
-            ompl_planning_pipeline_config,
-            kinematics_yaml,
-        ],
-        condition=IfCondition(tutorial_mode),
-    )
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        name="rviz2",
-        output="log",
-        arguments=["-d", rviz_full_config],
-        parameters=[
-            robot_description,
-            robot_description_semantic,
-            ompl_planning_pipeline_config,
-            kinematics_yaml,
-        ],
-        condition=UnlessCondition(tutorial_mode),
-    )
-
     # Static TF
     static_tf = Node(
         package="tf2_ros",
@@ -217,10 +178,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            tutorial_arg,
             db_arg,
-            rviz_node,
-            rviz_node_tutorial,
             static_tf,
             robot_state_publisher,
             run_move_group_node,
