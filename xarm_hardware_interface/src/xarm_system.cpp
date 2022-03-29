@@ -136,20 +136,7 @@ CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & /
   // set some default values when starting the first time
   for (uint i = 0; i < hw_states_.size(); i++)
   {
-    if (std::isnan(hw_states_[i]))
-    {
-      if (hw_joint_name_[i] == "xarm_1_joint") {
-        hw_states_[i] = 0.003;
-        hw_commands_[i] = 0.003;
-      } else {
-        hw_states_[i] = 0;
-        hw_commands_[i] = 0;
-      }
-    }
-    else
-    {
-      hw_commands_[i] = hw_states_[i];
-    }
+    hw_states_[i] = hw_commands_[i] = xarm.readDefaultPosition(hw_joint_name_[i]);
     hw_commands_last_[i] = std::numeric_limits<double>::max();
   }
 

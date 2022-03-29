@@ -23,6 +23,8 @@ namespace xarm
 			void setAllJointPositions(const std::vector<double> &commands, const std::vector<std::string> &joints);
 			void getAllJointPositions(std::vector<double> &positions, const std::vector<std::string> &joints);
 
+			double readDefaultPosition(std::string joint_name);
+
 		private:
 			void Process();
 

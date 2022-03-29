@@ -17,7 +17,6 @@
 
 //#define XARM_USB
 
-//const int UPDATE_PERIOD_MS = 30;
 const int UPDATE_PERIOD_MOVING_MS = 20;
 const int UPDATE_PERIOD_IDLE_MS = 100;
 
@@ -32,9 +31,7 @@ const int UPDATE_CNT_CHK_FOR_MANUAL_MODE = (2000/UPDATE_PERIOD_IDLE_MS);
 // File to create to enable the manual mode
 const std::string MANUAL_MODE_ENABLE_FILE = "/tmp/xarm_enable_manual_mode";
 
-// See comments below
-const int SMALL_CHANGE = 20;
-const int LARGE_CHANGE_MOVE_TIME = 1500;
+const int FIRST_SET_MOVE_TIME = 1500;
 
 const int NUM_JOINTS = 7;
 
@@ -110,24 +107,37 @@ namespace xarm
 								  // scale factor: mult scale by phy units in meter to get servo units
 		gripper_pos_m_to_s_factor_ = (gripper_pos_max_s_ - gripper_pos_min_s_)/(0.028 - gripper_pos_min_m_);
 
+		// FIX - use a structure
 		joint_range_limits_["xarm_2_joint"][0] = 200;	// min in servo units
 		joint_range_limits_["xarm_2_joint"][1] = 980;	// max in servo units
-		joint_range_limits_["xarm_2_joint"][2] = 1;	// -1 to invert range
+		joint_range_limits_["xarm_2_joint"][2] = 1;		// -1 to invert range
+		joint_range_limits_["xarm_2_joint"][3] = 500;	// mid point
+		joint_range_limits_["xarm_2_joint"][4] = 505;	// default position 
 		joint_range_limits_["xarm_3_joint"][0] = 140;
 		joint_range_limits_["xarm_3_joint"][1] = 880;
 		joint_range_limits_["xarm_3_joint"][2] = -1;
+		joint_range_limits_["xarm_3_joint"][3] = 500;
+		joint_range_limits_["xarm_3_joint"][4] = 102;	
 		joint_range_limits_["xarm_4_joint"][0] = 870;
 		joint_range_limits_["xarm_4_joint"][1] = 130;
 		joint_range_limits_["xarm_4_joint"][2] = -1;
+		joint_range_limits_["xarm_4_joint"][3] = 500;
+		joint_range_limits_["xarm_4_joint"][4] = 870;	
 		joint_range_limits_["xarm_5_joint"][0] = 140;
 		joint_range_limits_["xarm_5_joint"][1] = 880;
 		joint_range_limits_["xarm_5_joint"][2] = -1;
+		joint_range_limits_["xarm_5_joint"][3] = 500;
+		joint_range_limits_["xarm_5_joint"][4] = 647;	
 		joint_range_limits_["xarm_6_joint"][0] = 90;
 		joint_range_limits_["xarm_6_joint"][1] = 845;
 		joint_range_limits_["xarm_6_joint"][2] = 1;
+		joint_range_limits_["xarm_6_joint"][3] = 456;
+		joint_range_limits_["xarm_6_joint"][4] = 81;	
 		joint_range_limits_["xarm_7_joint"][0] = 85;
 		joint_range_limits_["xarm_7_joint"][1] = 846;
 		joint_range_limits_["xarm_7_joint"][2] = 1;
+		joint_range_limits_["xarm_7_joint"][3] = 500;
+		joint_range_limits_["xarm_7_joint"][4] = 500;	
 
 		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Joint limits:");
 
@@ -148,6 +158,15 @@ namespace xarm
 
 		inited_ = true;
 		return true;
+	}
+
+	double xarm::readDefaultPosition(std::string joint_name)
+	{
+		if (joint_name == "xarm_1_joint" || joint_name == "xarm_1_joint_mirror") {
+			return jointValueToPosition(joint_name, 433);
+		} else {
+			return jointValueToPosition(joint_name, joint_range_limits_[joint_name][4]);
+		}			
 	}
 
 	// Set position of all joint positions.  Any changes to the positions will be applied on the next
@@ -206,7 +225,7 @@ namespace xarm
 		double range = joint_range_limits_[joint_name][1] - joint_range_limits_[joint_name][0];
 		// Mid-range in servo units
 		//double b = joint_range_limits_[joint_name][0][1] - range/2;
-		double b = 500.0;
+		double b = joint_range_limits_[joint_name][3];
 		return (range*rad/PI*joint_range_limits_[joint_name][2]) + b;
 	}
 
@@ -215,7 +234,7 @@ namespace xarm
 		// Range in servo units
 		double range = joint_range_limits_[joint_name][1] - joint_range_limits_[joint_name][0];
 		// Mid-range in servo units
-		double b = 500.0;
+		double b = joint_range_limits_[joint_name][3];
 		//double b = joint_range_limits_[joint_name][0][1] - range/2;
 		return (unit - b)*PI*joint_range_limits_[joint_name][2]/range;
 	}
@@ -285,7 +304,7 @@ namespace xarm
 				uint16_t p = pos[joint_id - 1];
 				pos_map[name] = p;
 
-				RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
 					name.c_str(), p, jointValueToPosition(name, p));
 			}
 		} else {
@@ -330,6 +349,8 @@ namespace xarm
 		bool manual_mode = false;
 		bool idle = false;
 		int ck_for_idle_cnt = 0;
+		std::map<std::string, int> pos_map;
+		bool first_set = true;
 
 		while (run_) {
 			auto next_update_time = std::chrono::steady_clock::now();
@@ -371,14 +392,12 @@ namespace xarm
 				for (auto const &c: cmd) {
 					int set_pos = c.second;
 					const std::string &joint = c.first;
-					RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Update, joint %s, pos= %d", joint.c_str(), set_pos);
-					// For small changes such as when a trajectory is being followed (ie. by moveit2)the movement should
-					// occur over the update duration of this loop while new updates to the trajectory are
-					// being received.  For cases where the position represents a large change such as during initialization
-					// when driven with arbitrary joint settings, use a slow movement time to keep from jerking the arm.
-					setJointPosition(joint, set_pos, 
-						abs(set_pos - last_pos_get_map_[joint]) < SMALL_CHANGE? UPDATE_PERIOD_MOVING_MS: LARGE_CHANGE_MOVE_TIME);
+					RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Update, joint %s, pos= %d, delta= %d",
+						joint.c_str(), set_pos, set_pos - pos_map[joint]);
+					setJointPosition(joint, set_pos, first_set? FIRST_SET_MOVE_TIME: UPDATE_PERIOD_MOVING_MS);
 				}
+				first_set = false;
+
 				if (idle) {
 					RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Entering running mode");
 					idle = false;
@@ -393,7 +412,10 @@ namespace xarm
 			// Don't read while moving since it causes jerks in the motion.  Update after commands stop.
 			if (!new_cmd && --read_pos_delay_cnt <= 0) {
 				read_pos_delay_cnt = 5;
-				std::map<std::string, int> pos_map = last_pos_get_map_;
+				{
+					std::lock_guard<std::mutex> guard(mutex_);
+					pos_map = last_pos_get_map_;
+				}
 				readJointPositions(pos_map);
 				{
 					std::lock_guard<std::mutex> guard(mutex_);
