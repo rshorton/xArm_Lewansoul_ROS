@@ -14,6 +14,22 @@ namespace xarm
 {
 	class xarm
 	{
+		struct JointRangeLimits {
+			float range_rad;	// Range in radians corresponding to max-min servo units
+			int min;			// Range min, servo units
+			int max;			// Range max, servo units
+			int mid;			// Range min, servo units
+			int def;			// Default position, servo units
+			int invert_factor;	// 1 or -1 to invert range
+		};
+
+		struct Position {
+			int pos;			// Last position
+			bool changed;		// True if position changed
+		};
+
+		using PositionMap = std::map<std::string, struct Position>;
+
 		public:
 			xarm();
 			~xarm();
@@ -34,7 +50,7 @@ namespace xarm
 			double convertUnitToRad(std::string joint_name, int unit);
 			int convertRadToUnit(std::string joint_name, double rad);
 
-			void readJointPositions(std::map<std::string, int> &pos_map);
+			void readJointPositions(PositionMap &pos_map);
 			void setJointPosition(std::string joint_name, int position, int time);
 
 			void set_manual_mode(bool enable);
@@ -49,12 +65,12 @@ namespace xarm
 			std::thread thread_;
 
 			std::map<std::string, int> joint_name_map_;
-			std::map<std::string, int[3]> joint_range_limits_;
+			std::map<std::string, struct JointRangeLimits> joint_range_limits_;
 
 			// Map of joint to the last position set on the joint (in xarm units)
-			std::map<std::string, int> last_pos_set_map_;
+			PositionMap last_pos_set_map_;
 			// Map of joint to the last position status read for the joint (in xarm units)
-			std::map<std::string, int> last_pos_get_map_;
+			PositionMap last_pos_get_map_;
 
 			double gripper_pos_min_m_;
 			double gripper_pos_min_s_;

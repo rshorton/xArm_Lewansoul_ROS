@@ -39,9 +39,9 @@ def generate_launch_description():
 
     robot_description_config = xacro.process_file(
         os.path.join(
-            get_package_share_directory("xarm_description"),
+            get_package_share_directory("create_description"),
             "urdf",
-            "xarm.urdf",
+            "create_2.urdf.xacro",
         )
     )
     robot_description = {"robot_description": robot_description_config.toxml()}

@@ -112,17 +112,14 @@ namespace xarm
 		}
 	}
 
-	bool xarm_serial::readJointPositionAll(std::vector<uint16_t> &pos)
+	bool xarm_serial::getJointPosition(int id, uint16_t &pos)
 	{
-		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointPositionAll");
-		bool bOk = true;
-		for (size_t i = 0; i < pos.size(); i++) {
-			if (!LobotSerialServoReadPosition(fd_, i + 1, pos[i])) {
-				RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to read servo %lu position", i + 1);
-				bOk = false;
-			}
+		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointPosition");
+		if (!LobotSerialServoReadPosition(fd_, id, pos)) {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to read servo %d position", id);
+			return false;
 		}
-		return bOk;
+		return true;
 	}
 
 	bool xarm_serial::setJointPosition(int id, uint16_t pos, uint16_t time)

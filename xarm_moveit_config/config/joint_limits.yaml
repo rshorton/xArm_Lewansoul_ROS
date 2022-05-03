@@ -37,3 +37,8 @@ joint_limits:
     max_velocity: 1.0
     has_acceleration_limits: false
     max_acceleration: 0
+  xarm_8_joint:
+    has_velocity_limits: true
+    max_velocity: 1.0
+    has_acceleration_limits: false
+    max_acceleration: 0

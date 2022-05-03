@@ -19,9 +19,8 @@ int main(int argc, char **argv)
     rclcpp::init(argc, argv);
 
     int i;
-    const int num_servos = 1;
     std::unique_ptr<xarm::xarm_drvr> drvr_ = std::make_unique<xarm::xarm_serial>();
-    std::vector<uint16_t> pos(num_servos, 0);
+    uint16_t pos;
 
     if (!drvr_->open(SERIAL_DEV)) {
         std::cerr << "Failed to open driver";
@@ -37,10 +36,8 @@ int main(int argc, char **argv)
     for (i = 0; i < 5*2; i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200) );
 
-        if (drvr_->readJointPositionAll(pos)) {
-            for (size_t i = 0; i < num_servos; i++) {
-                std::cout << "servo " << i << ", pos: " << pos[i] << std::endl;
-            }
+        if (drvr_->getJointPosition(1, pos)) {
+            std::cout << "servo " << i << ", pos: " << pos << std::endl;
         } else {
             std::cerr << "Failed to read servo position" << std::endl;
         }
@@ -55,10 +52,8 @@ int main(int argc, char **argv)
     for (i = 0; i < 5*2; i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200) );
 
-        if (drvr_->readJointPositionAll(pos)) {
-            for (size_t i = 0; i < num_servos; i++) {
-                std::cout << "servo " << i << ", pos: " << pos[i] << std::endl;
-            }
+        if (drvr_->getJointPosition(1, pos)) {
+            std::cout << "servo " << i << ", pos: " << pos << std::endl;
         } else {
             std::cerr << "Failed to read servo position" << std::endl;
         }
@@ -66,10 +61,8 @@ int main(int argc, char **argv)
 
     std::this_thread::sleep_for(std::chrono::milliseconds(3000) );
 
-    if (drvr_->readJointPositionAll(pos)) {
-        for (size_t i = 0; i < num_servos; i++) {
-            std::cout << "servo " << i << ", pos: " << pos[i] << std::endl;
-        }
+    if (drvr_->getJointPosition(1, pos)) {
+        std::cout << "servo " << i << ", pos: " << pos << std::endl;
     } else {
         std::cerr << "Failed to read servo position" << std::endl;
     }

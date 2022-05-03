@@ -18,7 +18,7 @@ namespace xarm
 			bool open(const std::string &portname) override;
 			void close() override;
 
-			bool readJointPositionAll(std::vector<uint16_t> &pos) override;
+			bool getJointPosition(int id, uint16_t &pos) override;
 			bool setJointPosition(int id, uint16_t pos, uint16_t time) override;
 			bool setManualModeAll(bool enable, int count) override;
 

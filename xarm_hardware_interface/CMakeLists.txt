@@ -24,7 +24,7 @@ add_library(
   SHARED
   src/xarm_system.cpp
   src/xarm.cpp
-  src/xarm_usb.cpp
+  #src/xarm_usb.cpp
   src/xarm_serial.cpp
   src/serial_servo_bus.cpp
 )

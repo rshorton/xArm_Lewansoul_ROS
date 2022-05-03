@@ -1,6 +1,7 @@
 controller_names:
   - xarm_trajectory_position_controller
   - xarm_gripper_trajectory_position_controller
+  - xarm_gripper_3finger_trajectory_position_controller
 
 xarm_trajectory_position_controller:
   action_ns: follow_joint_trajectory
@@ -20,7 +21,13 @@ xarm_gripper_trajectory_position_controller:
   default: true
   joints:
       - xarm_1_joint
-  #    - xarm_1_joint_mirror
+
+xarm_gripper_3finger_trajectory_position_controller:
+  action_ns: follow_joint_trajectory
+  type: FollowJointTrajectory
+  default: true
+  joints:
+      - xarm_8_joint
 
 #xarm_gripper_position_controller:
 #   action_ns: gripper_action

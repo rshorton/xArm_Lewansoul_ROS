@@ -3,19 +3,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <chrono>     
+#include <chrono>
+#include <math.h>     
 
 #include "rclcpp/rclcpp.hpp"
 #include "xarm_hardware_interface/xarm.h"
 
 #include "xarm_hardware_interface/xarm_serial.hpp"
-#include "xarm_hardware_interface/xarm_usb.hpp"
+//#include "xarm_hardware_interface/xarm_usb.hpp"
 
 #define MAX_STR 255
-#define PI 3.14159265359
 #define INVALID_POS 99999	// Invalid servo value
 
 //#define XARM_USB
+
+//#define EEF_2_FINGER
+#define EEF_3_FINGER
 
 const int UPDATE_PERIOD_MOVING_MS = 20;
 const int UPDATE_PERIOD_IDLE_MS = 100;
@@ -85,8 +88,14 @@ namespace xarm
 		}
 
 		//Dictionary of joint_names to joint_id
+#if defined(EEF_3_FINGER)
+		joint_name_map_.insert(std::make_pair("xarm_8_joint" , 8));
+		joint_name_map_.insert(std::make_pair("xarm_8_joint_mirror_1" , 12));
+		joint_name_map_.insert(std::make_pair("xarm_8_joint_mirror_2" , 13));
+#else
 		joint_name_map_.insert(std::make_pair("xarm_1_joint" , 1));
 		joint_name_map_.insert(std::make_pair("xarm_1_joint_mirror" , 11));
+#endif		
 		joint_name_map_.insert(std::make_pair("xarm_2_joint" , 2));
 		joint_name_map_.insert(std::make_pair("xarm_3_joint" , 3));
   		joint_name_map_.insert(std::make_pair("xarm_4_joint" , 4));
@@ -94,6 +103,7 @@ namespace xarm
 		joint_name_map_.insert(std::make_pair("xarm_6_joint" , 6));
 		joint_name_map_.insert(std::make_pair("xarm_7_joint" , 7));
 
+#if defined(EEF_2_FINGER)
 		// gripper range servo units:             700   -  200
 		// corresponding to phy units of meters:  0.003 - 0.028
 		// 0.3 is 1/2 the total grip width since mimic joint used in urdf
@@ -106,52 +116,39 @@ namespace xarm
 		gripper_pos_max_s_ = 200.0;
 								  // scale factor: mult scale by phy units in meter to get servo units
 		gripper_pos_m_to_s_factor_ = (gripper_pos_max_s_ - gripper_pos_min_s_)/(0.028 - gripper_pos_min_m_);
-
-		// FIX - use a structure
-		joint_range_limits_["xarm_2_joint"][0] = 200;	// min in servo units
-		joint_range_limits_["xarm_2_joint"][1] = 980;	// max in servo units
-		joint_range_limits_["xarm_2_joint"][2] = 1;		// -1 to invert range
-		joint_range_limits_["xarm_2_joint"][3] = 500;	// mid point
-		joint_range_limits_["xarm_2_joint"][4] = 505;	// default position 
-		joint_range_limits_["xarm_3_joint"][0] = 140;
-		joint_range_limits_["xarm_3_joint"][1] = 880;
-		joint_range_limits_["xarm_3_joint"][2] = -1;
-		joint_range_limits_["xarm_3_joint"][3] = 500;
-		joint_range_limits_["xarm_3_joint"][4] = 102;	
-		joint_range_limits_["xarm_4_joint"][0] = 870;
-		joint_range_limits_["xarm_4_joint"][1] = 130;
-		joint_range_limits_["xarm_4_joint"][2] = -1;
-		joint_range_limits_["xarm_4_joint"][3] = 500;
-		joint_range_limits_["xarm_4_joint"][4] = 870;	
-		joint_range_limits_["xarm_5_joint"][0] = 140;
-		joint_range_limits_["xarm_5_joint"][1] = 880;
-		joint_range_limits_["xarm_5_joint"][2] = -1;
-		joint_range_limits_["xarm_5_joint"][3] = 500;
-		joint_range_limits_["xarm_5_joint"][4] = 647;	
-		joint_range_limits_["xarm_6_joint"][0] = 90;
-		joint_range_limits_["xarm_6_joint"][1] = 845;
-		joint_range_limits_["xarm_6_joint"][2] = 1;
-		joint_range_limits_["xarm_6_joint"][3] = 456;
-		joint_range_limits_["xarm_6_joint"][4] = 81;	
-		joint_range_limits_["xarm_7_joint"][0] = 85;
-		joint_range_limits_["xarm_7_joint"][1] = 846;
-		joint_range_limits_["xarm_7_joint"][2] = 1;
-		joint_range_limits_["xarm_7_joint"][3] = 500;
-		joint_range_limits_["xarm_7_joint"][4] = 500;	
+#endif	
+											 // range
+											 // rad     min		max      mid  default	invert
+		joint_range_limits_["xarm_2_joint"] = {	M_PI,	200,	980,	 500, 	505,	 1};
+		joint_range_limits_["xarm_3_joint"] = {	M_PI,	140,	880,	 500,	102,	-1};
+		joint_range_limits_["xarm_4_joint"] = { M_PI,	870,	130,	 500,	870,	-1};
+		joint_range_limits_["xarm_5_joint"] = { M_PI,	140,	880,	 500,	647,	-1};
+		joint_range_limits_["xarm_6_joint"] = { M_PI,	 90,	845,	 456,	 81,	 1};
+		joint_range_limits_["xarm_7_joint"] = { M_PI,	 85,	846,	 500,	500, 	 1};
+//fix
+#if defined(EEF_3_FINGER)
+		joint_range_limits_["xarm_8_joint"] = { 0.80,	  0,	500,	 250,	250,	 1};
+		joint_range_limits_["xarm_8_joint_mirror_1"] = joint_range_limits_["xarm_8_joint"];
+		joint_range_limits_["xarm_8_joint_mirror_2"] = joint_range_limits_["xarm_8_joint"];
+#endif		
 
 		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Joint limits:");
 
 		for (const auto &j: joint_name_map_) {
 			const auto &name = j.first;
-			last_pos_set_map_[name] = INVALID_POS;
-			last_pos_get_map_[name] = INVALID_POS;
+			last_pos_set_map_[name] = {INVALID_POS, false};
+			last_pos_get_map_[name] = {INVALID_POS, false};
 
 			// Print ranges in radians
 			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Joint: %s,  min,max:  %f, %f",
 				name.c_str(), 
-				jointValueToPosition(name, joint_range_limits_[name][0]),
-				jointValueToPosition(name, joint_range_limits_[name][1]));
+				jointValueToPosition(name, joint_range_limits_[name].min),
+				jointValueToPosition(name, joint_range_limits_[name].max));
 		}
+
+		// Read the initial positions before starting the thread that will handle that
+		// from then on
+		readJointPositions(last_pos_get_map_);
 
 		run_ = true;
 		thread_ = std::thread{std::bind(&xarm::Process, this)};
@@ -162,10 +159,14 @@ namespace xarm
 
 	double xarm::readDefaultPosition(std::string joint_name)
 	{
-		if (joint_name == "xarm_1_joint" || joint_name == "xarm_1_joint_mirror") {
+#if defined(EEF_2_FINGER)
+		if (joint_name == "xarm_1_joint" ||
+			joint_name == "xarm_1_joint_mirror") {
 			return jointValueToPosition(joint_name, 433);
-		} else {
-			return jointValueToPosition(joint_name, joint_range_limits_[joint_name][4]);
+		} else
+#endif			
+		{
+			return jointValueToPosition(joint_name, joint_range_limits_[joint_name].def);
 		}			
 	}
 
@@ -177,26 +178,19 @@ namespace xarm
 		std::lock_guard<std::mutex> guard(mutex_);
 	 	for (uint i = 0; i < commands.size(); i++) {
 			const std::string &name = joints[i];
-			if (name == "xarm_dummy_joint") {
-				RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "New pos cmd %*s %s: %.5f",
-							i*8, "",
-							name.c_str(),
-							commands[i]);
-				continue;
-			}
 
 			int joint_pos = positionToJointValue(name, commands[i]);
-			if (joint_pos != last_pos_set_map_[name]) {
-				RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "New pos cmd %*s %s: %.5f",
+			if (joint_pos != last_pos_set_map_[name].pos) {
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "New pos cmd %*s %s: %.5f",
 							i*8, "",
 							name.c_str(),
 							commands[i]);
-				last_pos_set_map_[name] = joint_pos;
+				last_pos_set_map_[name] = {joint_pos, true};
 				// Run in open-loop while moving by immediately reporting the movement has completed
 				// since reading the actual position from the servos during motion causes too much
 				// delay and jerky motion as a result.  Once motion stops, the actual joint positions
 				// will updated by the update thread.
-				last_pos_get_map_[name] = joint_pos;
+				last_pos_get_map_[name] = {joint_pos, false};
 				new_cmd_ = true;
 			}
 		}
@@ -207,43 +201,46 @@ namespace xarm
 	{
 		std::lock_guard<std::mutex> guard(mutex_);
 	 	for (uint i = 0; i < joints.size(); i++) {
-			if (joints[i] == "xarm_dummy_joint") {
-				positions.push_back(0.0);	
-			} else {
-				positions.push_back(jointValueToPosition(joints[i], last_pos_get_map_[joints[i]]));
-				RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Get cur pos %*s %s: %.5f",
-							(i - 1)*8, "",
-							joints[i].c_str(),
-							positions[i]);
-			}				
+			positions.push_back(jointValueToPosition(joints[i], last_pos_get_map_[joints[i]].pos));
+			RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Get cur pos %*s %s: %.5f",
+						i*8, "",
+						joints[i].c_str(),
+						positions[i]);
 		}
 	}
 
 	int xarm::convertRadToUnit(std::string joint_name, double rad)
 	{
 		// Range in servo units
-		double range = joint_range_limits_[joint_name][1] - joint_range_limits_[joint_name][0];
+		double range = joint_range_limits_[joint_name].max - joint_range_limits_[joint_name].min;
 		// Mid-range in servo units
-		//double b = joint_range_limits_[joint_name][0][1] - range/2;
-		double b = joint_range_limits_[joint_name][3];
-		return (range*rad/PI*joint_range_limits_[joint_name][2]) + b;
+		//double b = joint_range_limits_[joint_name].min.max - range/2;
+		double b = joint_range_limits_[joint_name].mid;
+		return (range*rad/joint_range_limits_[joint_name].range_rad*joint_range_limits_[joint_name].invert_factor) + b;
 	}
 
 	double xarm::convertUnitToRad(std::string joint_name, int unit)
 	{
 		// Range in servo units
-		double range = joint_range_limits_[joint_name][1] - joint_range_limits_[joint_name][0];
+		double range = joint_range_limits_[joint_name].max - joint_range_limits_[joint_name].min;
 		// Mid-range in servo units
-		double b = joint_range_limits_[joint_name][3];
-		//double b = joint_range_limits_[joint_name][0][1] - range/2;
-		return (unit - b)*PI*joint_range_limits_[joint_name][2]/range;
+		double b = joint_range_limits_[joint_name].mid;
+		//double b = joint_range_limits_[joint_name].min.max - range/2;
+		return (unit - b)*joint_range_limits_[joint_name].range_rad*joint_range_limits_[joint_name].invert_factor/range;
 	}
 
 	double xarm::jointValueToPosition(std::string joint_name, int jointValue)
 	{
 		double position = 0.0;
+#if defined(EEF_3_FINGER)
+		if (joint_name == "xarm_8_joint" ||
+		 	joint_name == "xarm_8_joint_mirror_1" ||
+			joint_name == "xarm_8_joint_mirror_2") {
+			position = convertUnitToRad("xarm_8_joint", jointValue);
+#else
+		if (joint_name == "xarm_1_joint" ||
+			joint_name == "xarm_1_joint_mirror") {
 
-		if (joint_name == "xarm_1_joint" || joint_name == "xarm_1_joint_mirror") {
 			float pos = (float)jointValue;
 			if (pos > gripper_pos_min_s_) {
 				pos = gripper_pos_min_s_;
@@ -254,6 +251,7 @@ namespace xarm
 			if (joint_name == "xarm_1_joint_mirror") {
 				position *= -1;
 			}
+#endif			
 		} else {
 			position = convertUnitToRad(joint_name, jointValue);
 		}
@@ -264,6 +262,7 @@ namespace xarm
 	{
 		int position_unit = 0;
 
+#if defined(EEF_2_FINGER)
 		if (joint_name == "xarm_1_joint") {
 			double pos_in = position;
 			if (pos_in < gripper_pos_min_m_) {
@@ -274,49 +273,51 @@ namespace xarm
 			if (position_unit < gripper_pos_max_s_) {
 				position_unit = gripper_pos_max_s_;
 			}
-		} else {
+		} else
+#endif		
+		{
 			position_unit = int(convertRadToUnit(joint_name, position));
-
 		}
 		return position_unit;
 	}
 
-	// FIX - maybe break into separate reads since serial driver reads one at a time anyway
 	// Read all joint positions
-	void xarm::readJointPositions(std::map<std::string, int> &pos_map)
+	void xarm::readJointPositions(PositionMap &pos_map)
 	{
-		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition start");
+		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "readJointPositions start");
 
-		std::vector<uint16_t> pos(NUM_JOINTS, 0);
 		int joint_id;
-		if (drvr_->readJointPositionAll(pos)) {
-			for (auto const &j: joint_name_map_) {
-				std::string name = j.first;
-
-				// If mirrored joint 1
-				if (name == "xarm_1_joint_mirror") {
-					joint_id = joint_name_map_["xarm_1_joint"];
-				} else {
-					joint_id = j.second;
-				}
-
-				// 1-based joint IDs
-				uint16_t p = pos[joint_id - 1];
-				pos_map[name] = p;
-
-				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
-					name.c_str(), p, jointValueToPosition(name, p));
+		for (auto const &j: joint_name_map_) {
+			std::string name = j.first;
+#if defined(EEF_3_FINGER)
+			// If mirrored joint 1
+			if (name == "xarm_8_joint_mirror_1" ||
+				name == "xarm_8_joint_mirror_2") {
+				joint_id = joint_name_map_["xarm_8_joint"];
+#else
+			// If mirrored joint 1
+			if (name == "xarm_1_joint_mirror") {
+				joint_id = joint_name_map_["xarm_1_joint"];
+#endif					
+			} else {
+				joint_id = j.second;
 			}
-		} else {
-			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Failed to read joint position");
+
+			uint16_t p;
+			if (!drvr_->getJointPosition(joint_id, p)) {
+				RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "getJointsPosition error for joint: %d", joint_id);
+				continue;
+			}
+			pos_map[name] = {p, true};
+			RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Read servo %s, pos= %d, %f",
+				name.c_str(), p, jointValueToPosition(name, p));
 		}
-		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "readJointsPosition exit");
 	}
 
 	// Set the specified joint position
 	void  xarm::setJointPosition(std::string joint_name, int position, int time)
 	{
-		RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %d, time %d",
+		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Set servo %s, pos= %d, time %d",
 				joint_name.c_str(), position, time);
 
 		if (!drvr_->setJointPosition(joint_name_map_[joint_name], position, time)) {
@@ -349,7 +350,7 @@ namespace xarm
 		bool manual_mode = false;
 		bool idle = false;
 		int ck_for_idle_cnt = 0;
-		std::map<std::string, int> pos_map;
+		PositionMap pos_map;
 		bool first_set = true;
 
 		while (run_) {
@@ -368,7 +369,7 @@ namespace xarm
 						// Periodically print each joint position while in manual mode
 						RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "In Manual mode, joint positions:");
 						for (auto const &p: last_pos_get_map_) {
-							RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "  Pos: %d,  Joint: %s", p.second, p.first.c_str());
+							RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "  Pos: %d,  Joint: %s", p.second.pos, p.first.c_str());
 						}
 					}
 				} else if (!manual_mode && enabled) {
@@ -378,23 +379,32 @@ namespace xarm
 			}
 
 			bool new_cmd = false;
-			std::map<std::string, int> cmd;
+			PositionMap cmd;
 			{
 				std::lock_guard<std::mutex> guard(mutex_);
-				cmd = last_pos_set_map_;
-				new_cmd = new_cmd_;
-				new_cmd_ = false;
+				if (new_cmd_) {
+					cmd = last_pos_set_map_;
+					new_cmd = true;
+					new_cmd_ = false;
+
+					for (auto &lp: last_pos_set_map_) {
+						lp.second.changed = false;
+					}
+				}					
 			}
 
 			if (new_cmd) {
 				read_pos_delay_cnt = 1;
 
 				for (auto const &c: cmd) {
-					int set_pos = c.second;
-					const std::string &joint = c.first;
-					RCLCPP_DEBUG(rclcpp::get_logger("XArmSystemHardware"), "Update, joint %s, pos= %d, delta= %d",
-						joint.c_str(), set_pos, set_pos - pos_map[joint]);
-					setJointPosition(joint, set_pos, first_set? FIRST_SET_MOVE_TIME: UPDATE_PERIOD_MOVING_MS);
+					if (c.second.changed) {
+						int set_pos = c.second.pos;
+
+						const std::string &joint = c.first;
+						RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Update, joint %s, pos= %d, delta= %d",
+							joint.c_str(), set_pos, set_pos - pos_map[joint].pos);
+						setJointPosition(joint, set_pos, first_set? FIRST_SET_MOVE_TIME: UPDATE_PERIOD_MOVING_MS);
+					}						
 				}
 				first_set = false;
 

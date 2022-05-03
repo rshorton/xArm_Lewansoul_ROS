@@ -9,7 +9,6 @@ from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_directory
 import xacro
 
-
 def load_file(package_name, file_path):
     package_path = get_package_share_directory(package_name)
     absolute_file_path = os.path.join(package_path, file_path)
@@ -50,15 +49,16 @@ def generate_launch_description():
             "xarm.urdf",
         )
     )
-
     robot_description = {"robot_description": robot_description_config.toxml()}
 
-    robot_description_semantic_config = load_file(
-        "xarm_moveit_config", "config/xarm.srdf"
+    robot_description_semantic_config = xacro.process_file(
+        os.path.join(
+            get_package_share_directory("xarm_moveit_config"),
+            "config",
+            "xarm.srdf",
+        )
     )
-    robot_description_semantic = {
-        "robot_description_semantic": robot_description_semantic_config
-    }
+    robot_description_semantic = {"robot_description_semantic": robot_description_semantic_config.toxml()}
 
     kinematics_yaml = load_yaml(
         "xarm_moveit_config", "config/kinematics.yaml"
@@ -88,12 +88,9 @@ def generate_launch_description():
 
     trajectory_execution = {
         "moveit_manage_controllers": True,
-        #"trajectory_execution.allowed_execution_duration_scaling": 1.2,
         "trajectory_execution.allowed_execution_duration_scaling": 10.0,
         "trajectory_execution.allowed_goal_duration_margin": 0.5,
-        #"trajectory_execution.allowed_goal_duration_margin": 4.0,
         "trajectory_execution.allowed_start_tolerance": 0.05,
-        #"trajectory_execution.allowed_start_tolerance": 0.01,
     }
 
     planning_scene_monitor_parameters = {
@@ -129,7 +126,7 @@ def generate_launch_description():
         executable="rviz2",
         name="rviz2",
         output="log",
-        arguments=["-d", rviz_empty_config],
+        arguments=["-d", rviz_empty_config, '--ros-args', '--log-level', 'warn'],
         parameters=[
             robot_description,
             robot_description_semantic,
@@ -143,7 +140,7 @@ def generate_launch_description():
         executable="rviz2",
         name="rviz2",
         output="log",
-        arguments=["-d", rviz_full_config],
+        arguments=["-d", rviz_full_config, '--ros-args', '--log-level', 'warn'],
         parameters=[
             robot_description,
             robot_description_semantic,
@@ -181,6 +178,7 @@ def generate_launch_description():
         package="controller_manager",
         executable="ros2_control_node",
         parameters=[robot_description, robot_controllers],
+        arguments=['--ros-args', '--log-level', 'warn'],
         output={
             "stdout": "screen",
             "stderr": "screen",
@@ -189,7 +187,8 @@ def generate_launch_description():
 
     # Load controllers
     load_controllers = []
-    for controller in ["xarm_trajectory_position_controller", "joint_state_broadcaster", "xarm_gripper_trajectory_position_controller"]:
+    #for controller in ["xarm_trajectory_position_controller", "joint_state_broadcaster", "xarm_gripper_trajectory_position_controller"]:
+    for controller in ["xarm_trajectory_position_controller", "joint_state_broadcaster", "xarm_gripper_3finger_trajectory_position_controller"]:
         load_controllers += [
             ExecuteProcess(
                 cmd=["ros2 run controller_manager spawner {}".format(controller)],

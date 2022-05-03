@@ -18,10 +18,11 @@ import sys
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
-
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
 
+import xacro
 
 def generate_launch_description():
     # Declare arguments
@@ -36,13 +37,6 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            "description_file",
-            default_value="xarm.urdf",
-            description="URDF/XACRO description file with the robot.",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             "prefix",
             default_value='""',
             description="Prefix of the joint names, useful for \
@@ -53,21 +47,17 @@ def generate_launch_description():
 
     # Initialize Arguments
     description_package = LaunchConfiguration("description_package")
-    description_file = LaunchConfiguration("description_file")
     prefix = LaunchConfiguration("prefix")
 
-    # Get URDF via xacro
-    robot_description_content = Command(
-        [
-            "cat",
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare(description_package), "urdf", description_file]
-            ),
-        ]
+    robot_description_config = xacro.process_file(
+        os.path.join(
+            get_package_share_directory("xarm_description"),
+            "urdf",
+            "xarm.urdf",
+        )
     )
 
-    robot_description = {"robot_description": robot_description_content}
+    robot_description = {"robot_description": robot_description_config.toxml()}
 
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(description_package), "config", "xarm.rviz"]

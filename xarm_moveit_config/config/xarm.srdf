@@ -1,20 +1,19 @@
 <?xml version="1.0" ?>
-<!--This does not replace URDF, and is not an extension of URDF.
-    This is a format for representing semantic information about the robot structure.
-    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
--->
-<robot name="create_2">
+
+<robot name="create_2" xmlns:xacro="http://ros.org/wiki/xacro">
+<!--robot name="xarm" xmlns:xacro="http://ros.org/wiki/xacro"-->
+
+    <xacro:property name="eef" value="eef_3_finger"/>
+
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     <group name="xarm">
-        <chain base_link="xarm_base_link" tip_link="xarm_gripper_base_link" />
+        <chain base_link="xarm_base_link" tip_link="eef_base_link" />
     </group>
-    <group name="arm_end_effector">
-        <joint name="xarm_1_joint" />
-    </group>
+
     <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
     <group_state name="Up" group="xarm">
         <joint name="xarm_7_joint" value="0" />
@@ -51,28 +50,7 @@
         <joint name="xarm_6_joint" value="-1.57" />
     </group_state>
 
-    <group_state name="closed" group="arm_end_effector">
-        <joint name="xarm_1_joint" value="0.004" />
-    </group_state>
-    <group_state name="open25pct" group="arm_end_effector">
-        <joint name="xarm_1_joint" value="0.010" />
-    </group_state>
-    <group_state name="open50pct" group="arm_end_effector">
-        <joint name="xarm_1_joint" value="0.016" />
-    </group_state>
-    <group_state name="open75pct" group="arm_end_effector">
-        <joint name="xarm_1_joint" value="0.022" />
-    </group_state>
-    <group_state name="open" group="arm_end_effector">
-        <joint name="xarm_1_joint" value="0.028" />
-    </group_state>
-
-    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="arm_ee" parent_link="xarm_gripper_base_link" group="arm_end_effector" parent_group="xarm" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="xarm_gripper_base_link" link2="xarm_gripper_finger_left_link" reason="Adjacent" />
-    <disable_collisions link1="xarm_gripper_base_link" link2="xarm_gripper_finger_right_link" reason="Adjacent" />
-    <disable_collisions link1="xarm_gripper_base_link" link2="xarm_3_link" reason="Adjacent" />
     <disable_collisions link1="xarm_3_link" link2="xarm_4_link" reason="Adjacent" />
     <disable_collisions link1="xarm_3_link" link2="xarm_5_link" reason="Never" />
     <disable_collisions link1="xarm_3_link" link2="xarm_6_link" reason="Never" />
@@ -83,4 +61,65 @@
     <disable_collisions link1="xarm_5_link" link2="xarm_6_link" reason="Adjacent" />
     <disable_collisions link1="xarm_6_link" link2="xarm_base_link" reason="Adjacent" />
     <disable_collisions link1="xarm_base_link" link2="vertical_body" reason="Adjacent" />
+
+     <xacro:if value="${eef == 'eef_2_finger'}">    
+        <group name="arm_end_effector">
+            <joint name="xarm_1_joint" />
+        </group>
+
+        <group_state name="closed" group="arm_end_effector">
+            <joint name="xarm_1_joint" value="0.004" />
+        </group_state>
+        <group_state name="open25pct" group="arm_end_effector">
+            <joint name="xarm_1_joint" value="0.010" />
+        </group_state>
+        <group_state name="open50pct" group="arm_end_effector">
+            <joint name="xarm_1_joint" value="0.016" />
+        </group_state>
+        <group_state name="open75pct" group="arm_end_effector">
+            <joint name="xarm_1_joint" value="0.022" />
+        </group_state>
+        <group_state name="open" group="arm_end_effector">
+            <joint name="xarm_1_joint" value="0.028" />
+        </group_state>
+        <end_effector name="arm_ee" parent_link="eef_base_link" group="arm_end_effector" parent_group="xarm" />
+
+        <disable_collisions link1="eef_base_link" link2="eef_2_finger_left_link" reason="Adjacent" />
+        <disable_collisions link1="eef_base_link" link2="eef_2_finger_right_link" reason="Adjacent" />
+        <disable_collisions link1="eef_base_link" link2="xarm_3_link" reason="Adjacent" />
+    </xacro:if>
+
+     <xacro:if value="${eef == 'eef_3_finger'}">    
+        <group name="arm_end_effector">
+            <joint name="xarm_8_joint" />
+        </group>
+
+        <group_state name="closed" group="arm_end_effector">
+            <joint name="xarm_8_joint" value="-0.355" />
+        </group_state>
+        <group_state name="open25pct" group="arm_end_effector">
+            <joint name="xarm_8_joint" value="-0.164" />
+        </group_state>
+        <group_state name="open50pct" group="arm_end_effector">
+            <joint name="xarm_8_joint" value="-0.038" />
+        </group_state>
+        <group_state name="open75pct" group="arm_end_effector">
+            <joint name="xarm_8_joint" value="0.129" />
+        </group_state>
+        <group_state name="open" group="arm_end_effector">
+            <joint name="xarm_8_joint" value="0.39" />
+        </group_state>
+
+        <end_effector name="arm_ee" parent_link="eef_base_link" group="arm_end_effector" parent_group="xarm" />
+
+        <disable_collisions link1="eef_base_link" link2="eef_3_finger_1_link" reason="Adjacent" />
+        <disable_collisions link1="eef_base_link" link2="eef_3_finger_2_link" reason="Adjacent" />
+        <disable_collisions link1="eef_base_link" link2="eef_3_finger_3_link" reason="Adjacent" />
+        <!-- Exclude finger-to-finger collisions -->
+        <disable_collisions link1="eef_3_finger_1_link" link2="eef_3_finger_2_link" reason="Adjacent" />
+        <disable_collisions link1="eef_3_finger_1_link" link2="eef_3_finger_3_link" reason="Adjacent" />
+        <disable_collisions link1="eef_3_finger_2_link" link2="eef_3_finger_3_link" reason="Adjacent" />
+        <disable_collisions link1="eef_base_link" link2="xarm_3_link" reason="Adjacent" />
+    </xacro:if>
+
 </robot>

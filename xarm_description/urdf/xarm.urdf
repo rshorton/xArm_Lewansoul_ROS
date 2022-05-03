@@ -1,5 +1,7 @@
 <?xml version="1.0" ?>
-<robot name="xarm">
+<robot name="xarm" xmlns:xacro="http://ros.org/wiki/xacro">
+    <xacro:property name="eef" value="eef_3_finger"/>
+
     <material name="DarkGrey">
         <color rgba="0.3 0.3 0.3 1.0" />
     </material>
@@ -145,65 +147,149 @@
         </inertial>
     </link>
 
-    <link name="xarm_gripper_base_link">
-        <visual>
-            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-            <material name="DarkGrey" />
-        </visual>
-        <collision>
-            <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-        </collision>
-        <inertial>
-            <mass value="0.1" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-    </link>
+    <xacro:if value="${eef == 'eef_2_finger'}">
+        <link name="eef_base_link">
+            <visual>
+                <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_palm.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
 
-    <link name="xarm_gripper_finger_left_link">
-        <visual>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-            <material name="DarkGrey" />
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-        </collision>
-        <inertial>
-            <mass value="0.1" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-    </link>
+        <link name="eef_2_finger_left_link">
+            <visual>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_finger_left.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
 
-    <link name="xarm_gripper_finger_right_link">
-        <visual>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-            <material name="DarkGrey" />
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
-            <geometry>
-                <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
-            </geometry>
-        </collision>
-        <inertial>
-            <mass value="0.1" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-    </link>
+        <link name="eef_2_finger_right_link">
+            <visual>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/gripper_finger_right.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
+    </xacro:if>
+
+    <xacro:if value="${eef == 'eef_3_finger'}">
+        <link name="eef_base_link">
+            <visual>
+                <origin rpy="0 0 -1.57" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_base.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 3.14" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_base.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
+
+        <link name="eef_3_finger_1_link">
+            <visual>
+                <origin rpy="0 0 0" xyz="0 0.0 0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
+
+        <link name="eef_3_finger_2_link">
+            <visual>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
+
+        <link name="eef_3_finger_3_link">
+            <visual>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+                <material name="DarkGrey" />
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0.0 0.0 0.0" />
+                <geometry>
+                    <mesh filename="package://xarm_description/meshes/stls/cmpl_gripper_finger.stl" scale="1.0 1.0 1.0" />
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1" />
+                <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+            </inertial>
+        </link>
+    </xacro:if>
 
     <joint name="xarm_6_joint" type="revolute">
         <origin rpy="0 0 0" xyz="0 0.0 0.03603" />
@@ -264,25 +350,64 @@
         <!--safety_controller k_position="30" k_velocity="30" soft_lower_limit="-2.93215314335" soft_upper_limit="2.93215314335"/>
         <dynamics damping="1.0"/-->
         <parent link="xarm_3_link" />
-        <child link="xarm_gripper_base_link" />
+
+        <xacro:if value="${eef == 'eef_2_finger'}">
+            <child link="eef_base_link" />
+        </xacro:if>
+
+        <xacro:if value="${eef == 'eef_3_finger'}">
+            <child link="eef_base_link" />
+        </xacro:if>            
     </joint>
 
-    <joint name="xarm_1_joint" type="prismatic">
-        <origin rpy="0 0 0" xyz="0 0 0.050"/>
-        <axis xyz="1 0 0" />
-        <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
-        <parent link="xarm_gripper_base_link"/>
-        <child link="xarm_gripper_finger_left_link"/>
-    </joint>
 
-    <joint name="xarm_1_joint_mirror" type="prismatic">
-        <origin rpy="0 0 0" xyz="0 0 0.050"/>
-        <axis xyz="1 0 0" />
-        <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
-        <parent link="xarm_gripper_base_link"/>
-        <child link="xarm_gripper_finger_right_link"/>
-        <mimic multiplier="-1.0" joint="xarm_1_joint" />
-    </joint>
+    <xacro:if value="${eef == 'eef_2_finger'}">
+        <joint name="xarm_1_joint" type="prismatic">
+            <origin rpy="0 0 0" xyz="0 0 0.050"/>
+            <axis xyz="1 0 0" />
+            <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
+            <parent link="eef_base_link"/>
+            <child link="eef_2_finger_left_link"/>
+        </joint>
+
+        <joint name="xarm_1_joint_mirror" type="prismatic">
+            <origin rpy="0 0 0" xyz="0 0 0.050"/>
+            <axis xyz="1 0 0" />
+            <limit effort="1000.0" lower="0.003" upper="0.028" velocity="0.5"/>
+            <parent link="eef_base_link"/>
+            <child link="eef_2_finger_right_link"/>
+            <mimic multiplier="-1.0" joint="xarm_1_joint" />
+        </joint>
+    </xacro:if>
+
+    <xacro:if value="${eef == 'eef_3_finger'}">
+        <joint name="xarm_8_joint" type="revolute">
+            <!--origin rpy="0 0 1.04" xyz="-0.015 -0.009 0.090"/-->
+            <origin rpy="0 0 -2.62" xyz="-0.030 -0.017 0.092"/>
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-0.36" upper="0.44" velocity="4.0"/>
+            <parent link="eef_base_link"/>
+            <child link="eef_3_finger_1_link"/>
+        </joint>
+
+        <joint name="xarm_8_joint_mirror_1" type="revolute">
+            <origin rpy="0 0 -0.52" xyz="0.030 -0.017 0.092"/>
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-0.36" upper="0.44" velocity="4.0"/>
+            <parent link="eef_base_link"/>
+            <child link="eef_3_finger_2_link"/>
+            <mimic multiplier="1.0" joint="xarm_8_joint" />
+        </joint>
+
+        <joint name="xarm_8_joint_mirror_2" type="revolute">
+            <origin rpy="0 0 1.57" xyz="0 0.034 0.092"/>
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-0.36" upper="0.44" velocity="4.0"/>
+            <parent link="eef_base_link"/>
+            <child link="eef_3_finger_3_link"/>
+            <mimic multiplier="1.0" joint="xarm_8_joint" />
+        </joint>
+    </xacro:if>
 
     <ros2_control name="xarm_ros2_control" type="system">
       <hardware>
@@ -292,20 +417,50 @@
         <param name="example_param_hw_slowdown">100</param>
       </hardware>
 
-      <joint name="xarm_1_joint">
-        <command_interface name="position">
-          <param name="min">0.0035</param>
-          <param name="max">0.028</param>
-        </command_interface>
-        <state_interface name="position"/>
-      </joint>
-      <joint name="xarm_1_joint_mirror">
-        <command_interface name="position">
-          <param name="min">0.003</param>
-          <param name="max">0.028</param>
-        </command_interface>
-        <state_interface name="position"/>
-      </joint>
+      <xacro:if value="${eef == 'eef_2_finger'}">
+        <joint name="xarm_1_joint">
+            <command_interface name="position">
+            <param name="min">0.0035</param>
+            <param name="max">0.028</param>
+            </command_interface>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="xarm_1_joint_mirror">
+            <command_interface name="position">
+            <param name="min">0.003</param>
+            <param name="max">0.028</param>
+            </command_interface>
+            <state_interface name="position"/>
+        </joint>
+      </xacro:if>
+
+      <xacro:if value="${eef == 'eef_3_finger'}">
+        <joint name="xarm_8_joint">
+            <command_interface name="position">
+            <param name="min">-0.36</param>
+            <param name="max">0.44</param>
+            </command_interface>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="xarm_8_joint_mirror_1">
+            <command_interface name="position">
+            <param name="min">-0.36</param>
+            <param name="max">0.44</param>
+            </command_interface>
+            <state_interface name="position"/>
+        </joint>
+
+        <joint name="xarm_8_joint_mirror_2">
+            <command_interface name="position">
+            <param name="min">-0.36</param>
+            <param name="max">0.44</param>
+            </command_interface>
+            <state_interface name="position"/>
+        </joint>
+      </xacro:if>        
+
       <joint name="xarm_7_joint">
         <command_interface name="position">
           <param name="min">-1.57</param>
@@ -313,6 +468,7 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+
       <joint name="xarm_2_joint">
         <command_interface name="position">
           <param name="min">-1.208</param>
@@ -320,6 +476,7 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+
       <joint name="xarm_3_joint">
         <command_interface name="position">
           <param name="min">-1.613</param>
@@ -327,6 +484,7 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+
       <joint name="xarm_4_joint">
         <command_interface name="position">
           <param name="min">-1.571</param>
@@ -334,6 +492,7 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+
       <joint name="xarm_5_joint">
         <command_interface name="position">
           <param name="min">-1.613</param>
@@ -341,6 +500,7 @@
         </command_interface>
         <state_interface name="position"/>
       </joint>
+
       <joint name="xarm_6_joint">
         <command_interface name="position">
           <param name="min">-1.706</param>
