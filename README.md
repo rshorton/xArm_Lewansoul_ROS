@@ -21,4 +21,8 @@ Example pick and place test app:
 * src: xarm_move_group_test/src/move_group_pick.cpp
 * video: https://youtu.be/PhVF9UsyZmc
 
+Example usage on moveable robot base:
+
+* https://youtu.be/iXQdU-qKR5s
+
 Tested with ROS2 Galactic as of 3/18/2022.
