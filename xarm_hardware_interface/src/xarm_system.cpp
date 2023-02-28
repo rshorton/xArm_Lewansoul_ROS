@@ -27,11 +27,11 @@
 
 namespace xarm_hardware
 {
-  CallbackReturn XArmSystemHardware::on_init(const hardware_interface::HardwareInfo & info)
+  hardware_interface::CallbackReturn XArmSystemHardware::on_init(const hardware_interface::HardwareInfo & info)
   {
-   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
+   if (hardware_interface::SystemInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
    {
-     return CallbackReturn::ERROR;
+     return hardware_interface::CallbackReturn::ERROR;
    }
 
 
@@ -115,13 +115,13 @@ std::vector<hardware_interface::CommandInterface> XArmSystemHardware::export_com
   return command_interfaces;
 }
 
-CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
+hardware_interface::CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Starting ...please wait...");
 
 #if !defined(FAKE_IT)
   if (!xarm.init()) {
-	  return CallbackReturn::ERROR;
+	  return hardware_interface::CallbackReturn::ERROR;
   }
 #endif
 
@@ -143,10 +143,10 @@ CallbackReturn XArmSystemHardware::on_activate(const rclcpp_lifecycle::State & /
   RCLCPP_INFO(
     rclcpp::get_logger("XArmSystemHardware"), "System Successfully started!");
 
-  return CallbackReturn::SUCCESS;
+  return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
+hardware_interface::CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Stopping ...please wait...");
 
@@ -161,12 +161,15 @@ CallbackReturn XArmSystemHardware::on_deactivate(const rclcpp_lifecycle::State &
   RCLCPP_INFO(
     rclcpp::get_logger("XArmSystemHardware"), "System successfully stopped!");
 
-  return CallbackReturn::SUCCESS;
+  return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 #if !defined(FAKE_IT)
-hardware_interface::return_type XArmSystemHardware::read()
+hardware_interface::return_type XArmSystemHardware::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+  (void)time;
+  (void)period; 
+
   std::vector<double> positions;
   xarm.getAllJointPositions(positions, hw_joint_name_);
 
@@ -183,15 +186,17 @@ hardware_interface::return_type XArmSystemHardware::read()
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type XArmSystemHardware::write()
+hardware_interface::return_type XArmSystemHardware::write(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
+  (void)time;
+  (void)period; 
   xarm.setAllJointPositions(hw_commands_, hw_joint_name_);
   return hardware_interface::return_type::OK;
 }
 
 
 #else
-hardware_interface::return_type XArmSystemHardware::read()
+hardware_interface::return_type XArmSystemHardware::read(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   //RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Reading...");
 
@@ -211,7 +216,7 @@ hardware_interface::return_type XArmSystemHardware::read()
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type XArmSystemHardware::write()
+hardware_interface::return_type XArmSystemHardware::write(const rclcpp::Time & time, const rclcpp::Duration & period)
 {
   //RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Writing...");
 
