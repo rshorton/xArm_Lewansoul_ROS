@@ -23,18 +23,15 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     # Get URDF
     robot_description_content = Command(
-        [
-            "cat",
-            " ",
-            PathJoinSubstitution(
+            ['xacro ', PathJoinSubstitution(
                 [
                     FindPackageShare("xarm_description"),
                     "urdf",
                     "xarm.urdf",
                 ]
-            ),
-        ]
+            )]
     )
+
     robot_description = {"robot_description": robot_description_content}
 
     robot_controllers = PathJoinSubstitution(
@@ -92,13 +89,20 @@ def generate_launch_description():
         arguments=["xarm_gripper_forward_position_controller", "-c", "/controller_manager"],
     )
 
+    robot_gripper_3finger_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["xarm_gripper_3finger_trajectory_position_controller", "-c", "/controller_manager"],
+    )
+
     nodes = [
         control_node,
         robot_state_pub_node,
         rviz_node,
         joint_state_broadcaster_spawner,
         robot_controller_spawner,
-        robot_gripper_controller_spawner
+        #robot_gripper_controller_spawner,
+        robot_gripper_3finger_controller_spawner
     ]
 
     return LaunchDescription(nodes)

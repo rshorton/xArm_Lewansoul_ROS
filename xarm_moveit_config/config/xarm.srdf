@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
-<robot name="create_2" xmlns:xacro="http://ros.org/wiki/xacro">
-<!--robot name="xarm" xmlns:xacro="http://ros.org/wiki/xacro"-->
+<!--robot name="create_2" xmlns:xacro="http://ros.org/wiki/xacro"-->
+<robot name="xarm" xmlns:xacro="http://ros.org/wiki/xacro">
 
     <xacro:property name="eef" value="eef_3_finger"/>
 

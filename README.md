@@ -12,11 +12,15 @@ This could not be tested because the original USB interface board died.)
 
 To manually control arm using the Motion Planning plug-in of RViz, run:
 
-    ros2 launch xarm_launch xarm.launch.py
+    ros2 launch xarm_moveit_config demo.launch.py    
 
 Use the positioning controls to move the arm and then select 'Plan & Execute'.
 
 Example pick and place test app:
+
+    1. Run the above command in one command shell.
+    2. In another shell run:
+        ros2 launch xarm_move_group_test xarm_move_group_pick.launch.py
 
 * src: xarm_move_group_test/src/move_group_pick.cpp
 * video: https://youtu.be/PhVF9UsyZmc
@@ -25,4 +29,4 @@ Example usage on moveable robot base:
 
 * https://youtu.be/iXQdU-qKR5s
 
-Tested with ROS2 Galactic as of 3/18/2022.
+Last tested with ROS2 Humble (9/25/2024)
