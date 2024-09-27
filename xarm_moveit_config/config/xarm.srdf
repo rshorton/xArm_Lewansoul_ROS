@@ -5,7 +5,8 @@
 
     <xacro:property name="eef" value="eef_3_finger"/>
 
-    <virtual_joint name="world_joint" type="planar" parent_frame="odom" child_link="base_footprint"/>
+    <!-- only needed when using with Elsabot/create_2 robot-->
+    <!--virtual_joint name="world_joint" type="planar" parent_frame="odom" child_link="base_footprint"/-->
 
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
@@ -52,6 +53,9 @@
         <joint name="xarm_6_joint" value="-1.57" />
     </group_state>
 
+    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
+    <virtual_joint child_link="xarm_base_link" name="virtual_joint" parent_frame="world" type="floating"/>
+
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="xarm_3_link" link2="xarm_4_link" reason="Adjacent" />
     <disable_collisions link1="xarm_3_link" link2="xarm_5_link" reason="Never" />
@@ -62,8 +66,9 @@
     <disable_collisions link1="xarm_4_link" link2="xarm_base_link" reason="Never" />
     <disable_collisions link1="xarm_5_link" link2="xarm_6_link" reason="Adjacent" />
     <disable_collisions link1="xarm_6_link" link2="xarm_base_link" reason="Adjacent" />
-    <disable_collisions link1="xarm_base_link" link2="vertical_body" reason="Adjacent" />
-    <disable_collisions link1="xarm_base_link" link2="base_link" reason="Adjacent" />
+    <!-- only needed when using with Elsabot/create_2 robot-->
+    <!--disable_collisions link1="xarm_base_link" link2="vertical_body" reason="Adjacent" /-->
+    <!--disable_collisions link1="xarm_base_link" link2="base_link" reason="Adjacent" /-->
 
      <xacro:if value="${eef == 'eef_2_finger'}">    
         <group name="arm_end_effector">
