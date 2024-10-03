@@ -10,6 +10,18 @@ the BusLinker V2.5 interface board to control the servos. (The USB HID interface
 implemented but untested after the refactoring for support of the serial interface.  
 This could not be tested because the original USB interface board died.)
 
+Building of xarm_hardware_interface requires hidapi.  Build using:
+
+    sudo apt-get install libudev-dev libusb-1.0-0-dev libfox-1.6-dev
+    sudo apt-get install autotools-dev autoconf automake libtool
+
+    git clone https://github.com/libusb/hidapi.git
+    cd hidapi/
+    ./bootstrap 
+    ./configure
+    make
+    sudo make install
+
 To manually control arm using the Motion Planning plug-in of RViz, run:
 
     ros2 launch xarm_moveit_config demo.launch.py    
