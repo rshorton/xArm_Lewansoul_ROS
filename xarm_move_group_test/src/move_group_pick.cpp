@@ -46,11 +46,13 @@
 #include <moveit_msgs/msg/joint_constraint.hpp>
 #include <moveit_msgs/msg/constraints.hpp>
 #include <moveit_msgs/msg/trajectory_constraints.hpp>
+#include <moveit_msgs/msg/trajectory_constraints.hpp>
+#include <moveit_msgs/msg/move_it_error_codes.hpp>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/utils.h>
-#include <math.h>
 
+#include <math.h>
 #include <json.hpp>
 
 #define TO_RAD(x) ((x)/180.0*M_PI)
@@ -58,6 +60,13 @@
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("xarm_move_group_test");
 
 using json = nlohmann::json;
+
+bool do_move(moveit::planning_interface::MoveGroupInterface &move_group)
+{
+  auto result = move_group.move();
+  RCLCPP_INFO(LOGGER, "Move result %d, %s", result.val, result.message.c_str());
+  return result.val == 1; //moveit_msgs::MoveItErrorCodes::SUCCESS;
+}
 
 int main(int argc, char** argv)
 {
@@ -117,13 +126,13 @@ int main(int argc, char** argv)
       pose.pose.orientation.w);
 
   move_group.setMaxVelocityScalingFactor(1.0);
-  move_group.setMaxAccelerationScalingFactor(0.10);
+  move_group.setMaxAccelerationScalingFactor(0.5);
   move_group.setNumPlanningAttempts(10);
   move_group.setPlanningTime(5);
   move_group.setGoalTolerance(0.010);
 
   move_group.setJointValueTarget(move_group.getNamedTargetValues("home"));
-  move_group.move();
+  do_move(move_group);
 
   tf2::Quaternion q;
   geometry_msgs::msg::Pose target;
@@ -138,7 +147,7 @@ int main(int argc, char** argv)
 
   RCLCPP_INFO(LOGGER, "Move to above object");
   move_group.setPoseTarget(target);
-  move_group.move();
+  do_move(move_group);
 
   // Open gripper
   RCLCPP_INFO(LOGGER, "Open gripper");
@@ -151,7 +160,7 @@ int main(int argc, char** argv)
   geometry_msgs::msg::Pose target_grab = target;
   target_grab.position.z = target.position.z - 0.14;
   move_group.setPoseTarget(target_grab);
-  move_group.move();
+  do_move(move_group);
 
   // Close gripper
   RCLCPP_INFO(LOGGER, "Close gripper");
@@ -167,7 +176,7 @@ int main(int argc, char** argv)
   target.position.z =  0.260;
 
   move_group.setPoseTarget(target);
-  move_group.move();
+  do_move(move_group);
 
   // Move to drop point
   RCLCPP_INFO(LOGGER, "Move to drop location");
@@ -177,7 +186,7 @@ int main(int argc, char** argv)
   target.position.z =  0.210;
 
   move_group.setPoseTarget(target);
-  move_group.move();
+  do_move(move_group);
 
   // Open gripper
   RCLCPP_INFO(LOGGER, "Open gripper");
@@ -187,7 +196,17 @@ int main(int argc, char** argv)
   // Move to home  
   RCLCPP_INFO(LOGGER, "Move to home location");
   move_group.setJointValueTarget(move_group.getNamedTargetValues("home"));
-  move_group.move();
+  do_move(move_group);
 
+  RCLCPP_INFO(LOGGER, "Move to home top location");
+  move_group.setJointValueTarget(move_group.getNamedTargetValues("home_top"));
+  do_move(move_group);
+
+  RCLCPP_INFO(LOGGER, "Move to home location");
+  move_group.setJointValueTarget(move_group.getNamedTargetValues("home"));
+  do_move(move_group);
+
+  RCLCPP_INFO(LOGGER, "Finished");
+  
   return 0;
 }

@@ -38,8 +38,6 @@ const int FIRST_SET_MOVE_TIME = 1500;
 
 const int NUM_JOINTS = 7;
 
-const std::string SERIAL_DEV = "/dev/servo_driver";
-
 namespace xarm
 {
 	xarm::xarm():
@@ -75,9 +73,17 @@ namespace xarm
 #if defined(XARM_USB)
 		drvr_ = std::make_unique<xarm_usb>();
 #else
+		const char* serial_dev_env_var = std::getenv("XARM_SERIAL_DEVICE");
+    if (serial_dev_env_var == nullptr) {
+			RCLCPP_ERROR(rclcpp::get_logger("XArmSystemHardware"), "Please set env var XARM_SERIAL_DEVICE to the servo driver device.");
+			return false;
+		}
+		RCLCPP_INFO(rclcpp::get_logger("XArmSystemHardware"), "Using serial device: %s", serial_dev_env_var);
+		
+		dev = std::string(serial_dev_env_var);
 		drvr_ = std::make_unique<xarm_serial>();
-		dev = SERIAL_DEV;
 #endif
+
 		if (!drvr_) {
 			return false;
 		}				

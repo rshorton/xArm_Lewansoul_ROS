@@ -1,6 +1,5 @@
 # xArm_Lewansoul_ROS+
-Provides ROS2 integration for xarm robot of Lewansoul.  Based on the original ROS 1 implementation
-by others.
+Provides ROS2 integration for xarm robot of Lewansoul.  Based on the original ROS 1 implementation by others.  Currently supports ROS2 Jazzy.  Use the Elsabot Docker (Jazzy) to build and run this package.
 
 PLEASE NOTE - This branch is for a modified xArm which includes an additional
 joint between existing joints 3 and 4 which now makes the arm a true 6 DOF arm and easier to control.

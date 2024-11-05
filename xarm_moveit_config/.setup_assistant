@@ -2,7 +2,7 @@ moveit_setup_assistant_config:
   URDF:
     package: xarm_description
     relative_path: urdf/xarm.urdf
-    xacro_args: "--inorder "
+    #xacro_args: "--inorder "
   SRDF:
     relative_path: config/xarm.srdf
   CONFIG:

@@ -5,42 +5,17 @@ controller_manager:
     joint_state_broadcaster:
       type: "joint_state_broadcaster/JointStateBroadcaster"
 
-    xarm_forward_position_controller:
-      type: "forward_command_controller/ForwardCommandController"
-
-    xarm_gripper_forward_position_controller:
-      type: "forward_command_controller/ForwardCommandController"
-
-    xarm_trajectory_position_controller:
+    xarm_controller:
       type: "joint_trajectory_controller/JointTrajectoryController"
 
-    xarm_gripper_trajectory_position_controller:
+    xarm_2finger_gripper_controller:
       type: "joint_trajectory_controller/JointTrajectoryController"
 
-    xarm_gripper_3finger_trajectory_position_controller:
+    xarm_3finger_gripper_controller:
       type: "joint_trajectory_controller/JointTrajectoryController"
 
-xarm_forward_position_controller:
-  ros__parameters:
-    joints:
-      - xarm_7_joint
-      - xarm_2_joint
-      - xarm_3_joint
-      - xarm_4_joint
-      - xarm_5_joint
-      - xarm_6_joint
 
-    interface_name: position
-
-xarm_gripper_forward_position_controller:
-  ros__parameters:
-    joints:
-      - xarm_1_joint
-      - xarm_1_joint_mirror
-
-    interface_name: position
-
-xarm_trajectory_position_controller:
+xarm_controller:
   ros__parameters:
     joints:
       - xarm_7_joint
@@ -66,7 +41,7 @@ xarm_trajectory_position_controller:
       stopped_velocity_tolerance: 0.01 # Defaults to 0.01
       goal_time: 0.0 # Defaults to 0.0 (start immediately)
 
-xarm_gripper_trajectory_position_controller:
+xarm_2finger_gripper_controller:
   ros__parameters:
     joints:
       - xarm_1_joint
@@ -87,7 +62,7 @@ xarm_gripper_trajectory_position_controller:
       stopped_velocity_tolerance: 0.01 # Defaults to 0.01
       goal_time: 0.0 # Defaults to 0.0 (start immediately)
 
-xarm_gripper_3finger_trajectory_position_controller:
+xarm_3finger_gripper_controller:
   ros__parameters:
     joints:
       - xarm_8_joint
